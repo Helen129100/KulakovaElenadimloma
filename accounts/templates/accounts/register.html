@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container container-windows">
+	<div class="row">
+		<div class="col-sm-6 offset-sm-3">
+
+			<form action="" method="post">
+				{% csrf_token %}
+				{% for field in form %}
+				<div class="form-group">
+					{{ field.errors }}
+					{{ field.label_tag }}
+					{{ field }}
+				</div>
+				{% endfor %}
+				<div class="login_reg_footer">
+					<p>Уже есть аккаунт? <a href="{% url 'accounts:login' %}">Войдите здесь</a></p>
+					<input type="submit" value="Подтвердить" class="btn btn-secondary">
+				</div>
+
+			</form>
+		</div>
+	</div>
+</div>
+
+{% endblock %}

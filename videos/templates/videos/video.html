@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load staticfiles %}
+{% load static %}
+{% load humanize %}
+
+{% block title %} {{video.post|truncatechars:42}} - ConnectUs {% endblock %}
+
+{% block content %}
+<div class="container container-windows container_video">
+
+	{% csrf_token %}
+
+	<div class="row row_video">
+
+		<div class="mt-5 col-md-8 main_video">
+
+			<div class="card">
+
+
+
+				<div class="card-body">
+
+					<video id="video-player" width="100%" height="100%" controls>
+
+						<source src="{{ video.video_file.url }}" type="video/mp4">
+					</video>
+
+				</div>
+
+				<div class="card-footer">
+					{{video.post}}
+
+				</div>
+
+				<div class="card-footer">
+					<div class="footer-firstpart">
+						<div class="footer_left">
+							<span class="mr-2">Просмотры: {{ video.views }}</span>
+							<span id="likes-count" class="mr-2">Лайки: {{ video.likes }}</span>
+							<div class="card-date">
+								<small class="mr-1"></small><small class="ml-1">{{video.date|naturaltime }}</small>
+							</div>
+						</div>
+
+						<div class="like_dislike_right">
+
+							<a id="like" data-id="{{ video.id }}" aria-label="Нравится" href="javascript:void(0);"
+								class="btn_like_dis  btn_modif dark-theme">
+								<img id="like_img" class="{% if user_liked %}like_img_red{% else %}like_img{% endif %}"
+									src="{% if user_liked %}{% static 'img/like_redht.png' %}{% else %}{% static 'img/like_black.png' %}{% endif %}"
+									alt="Лайк">
+							</a>
+
+						</div>
+					</div>
+					<div class="video_option_container">
+						<div class="channel_container d-flex align-items-center">
+							{% if video.user.avatar %}
+							<a href="{% url 'profile' video.user.username %}">
+								<img src="{{video.user.avatar.url}}" alt="profile_pic"
+									class="video-owner-pic rounded-circle">
+							</a>
+							{% else %}
+							<a href="{% url 'profile' video.user.username %}">
+								<img src="{% static 'img/user.png' %}" class="video-owner-pic rounded-circle"
+									alt="profile_pic" />
+							</a>
+							{% endif %}
+							<div class="ml-4">
+								<a href="{% url 'profile' video.user.username %}">
+									{{video.user.username}}
+								</a>
+							</div>
+						</div>
+
+						<div>
+							{% if video.user.username == user.username %}
+							<button id="edit" data-id="{{video.id}}" type="button"
+								class="btn btn-secondary">Редактировать видео</button>
+							{% else %}
+							<button id="subscribe" data-id="{{ video.user.id }}" type="button"
+								class="btn btn-secondary">
+								{% if is_subscribed %}
+								Подписаны
+								{% else %}
+								Подписаться
+								{% endif %}
+							</button>
+							{% endif %}
+						</div>
+					</div>
+
+					<div class="footer-description">
+						<p>Some text</p>
+					</div>
+				</div>
+			</div>
+
+
+
+		</div>
+		<div class="mt-5 col-md-4">
+			{% for video in side_videos %}
+
+			<div class="mb-3 card_mini">
+
+
+				<div class="card-body">
+					<a href="{% url 'videos:video' video.id %}">
+
+						<video id="vid" width="100%" height="200px;">
+							<source src="{{ video.video_file.url }}" type="video/mp4">
+						</video>
+
+					</a>
+
+				</div>
+
+				<div class="card-footer_mini">
+					<div class="card-name">
+						{{video.post|truncatechars:42}}
+					</div>
+
+
+					<div class="card-date">
+						<small class="ml-1">{{video.date|months_ago }}</small>
+					</div>
+				</div>
+
+			</div>
+
+			{% endfor %}
+		</div>
+
+
+	</div>
+	<div class="video-comments">
+		<span class="comments">Комментарии</span> (<span id="commentcount">{{video.calculate_comments}}</span>)
+
+		<div class="my-4">
+			<form id="comment" role="form" method="post" action="#" onsubmit="return false">
+				<input type="hidden" name="video_id" value="{{video.id}}">
+				<input id="usercomment" type="text" class="form-control input-sm" placeholder=" Напиши комментарий "
+					name="post" maxlength="255">
+			</form>
+		</div>
+
+		<ul id="commentcontainer" class="mb-4 clearfix">
+			{% include 'videos/partial_video_comments.html' %}
+		</ul>
+
+	</div>
+
+</div>
+
+
+<script>
+	//////////////////////////////////////////////////////////////
+	//video
+	/////////////////////////////////////////////////////////////
+	window.onload = function () {
+
+		var videoId = "{{ video.id }}";
+		var csrfToken = "{{ csrf_token }}";
+		var incrementViewsUrl = "{% url 'videos:increment_views' %}";
+
+		document.getElementById('video-player').addEventListener('play', function () {
+			$.ajax({
+				type: 'POST',
+				url: incrementViewsUrl,
+				data: { video_id: videoId },
+				headers: {
+					'X-CSRFToken': csrfToken
+				},
+				success: function (data) {
+					console.log('View count incremented');
+				}
+			});
+		});
+	};
+
+
+
+	document.getElementById('like').addEventListener('click', function () {
+		var videoId = $(this).data('id');
+		var likeIcon = $('#like_img'); // Получаем элемент изображения лайка
+		console.log("click");
+		$.ajax({
+			type: 'POST',
+			url: "{% url 'videos:like' %}",
+			data: { video_id: videoId },
+			headers: {
+				'X-CSRFToken': '{{ csrf_token }}'
+			},
+			success: function (data) {
+				console.log('Like action completed');
+				$('#likes-count').text(data.likes);
+
+				// Проверяем, какое действие произошло
+				if (data.action === "added") {
+					likeIcon.attr('src', '{% static "img/like_redht.png" %}'); // Изменяем изображение на красное
+					likeIcon.removeClass('like_img').addClass('like_img_red'); // Меняем класс
+				} else {
+
+					if (localStorage.getItem('theme') === 'dark') {
+						likeIcon.attr('src', '{% static "img/like_white.png" %}');
+					}
+					else {
+						likeIcon.attr('src', '{% static "img/like_black.png" %}');
+					}
+
+
+					likeIcon.removeClass('like_img_red').addClass('like_img'); // Меняем класс
+				}
+				console.log(data.action); // Для отладки
+			},
+			error: function (xhr, status, error) {
+				console.log('Error occurred:', error);
+			}
+		});
+	});
+
+
+	document.getElementById('subscribe').addEventListener('click', function () {
+		var channelId = $(this).data('id');
+		$.ajax({
+			type: 'POST',
+			url: "{% url 'videos:subscribe' %}",
+			data: {
+				channel_id: channelId,
+				csrfmiddlewaretoken: '{{ csrf_token }}'
+			},
+			success: function (response) {
+				if (response.status === 'subscribed') {
+					$('#subscribe').text('Подписаны'); // Измените текст кнопки
+				} else {
+					$('#subscribe').text('Подписаться'); // Верните текст кнопки
+				}
+				console.log(response.status); // Для отладки
+			},
+			error: function (xhr, status, error) {
+				console.log('Error occurred:', error);
+			}
+		});
+	});
+</script>
+{% endblock %}

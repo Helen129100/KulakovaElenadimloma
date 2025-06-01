@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+
+{% include 'header.html' %}
+
+<body>
+	<div class="container_base">
+		<div class="container-first ">
+			<a class="navbar-brand nav-link" href="{% url 'home' %}">ConnectUs</a>
+
+			<form method="get" class="form-inline d-flex justify-content-center">
+				<div class="input-group">
+					<input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Найдите видео"
+						class="form-control">
+					<div class="input-group-append">
+						<button type="submit" class="btn btn-primary">Поиск</button>
+					</div>
+				</div>
+			</form>
+
+			<div class="right_side_base">
+				<div class="theme-toggle">
+					<span class="sun-icon"><img class="icon_style" src="{% static 'img/sun1.png' %}" alt=""></span>
+					<span class="moon-icon"><img class="icon_style" src="{% static 'img/moon.png' %}" alt=""></span>
+				</div>
+				<div class="profile_nav">
+					{% if request.user.is_authenticated %}
+					<a href="{% url 'profile' user.username %}">
+						<img src="{{user.avatar.url}}" alt="profile_pic" class="video-owner-pic rounded-circle">
+					</a>
+
+					{% endif %}
+				</div>
+			</div>
+		</div>
+		<div class="main_container">
+
+
+			{% include 'includes/navbar.html' %}
+
+			{% block content %}
+
+			{% endblock %}
+
+			{% include 'includes/modal.html' %}
+		</div>
+
+	</div>
+	{% include 'footer.html' %}
+</body>
+
+</html>

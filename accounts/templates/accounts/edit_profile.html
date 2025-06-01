@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container ">
+	<div class="gradient_block"></div>
+
+	<div class="row container_modifacate">
+		<div class="col-sm-6 offset-sm-3">
+
+			<h2 class="mt-5 text-center">Редактирование профиля</h2>
+
+			{% if messages %}
+			{% for message in messages %}
+			<div {% if message.tags %} class="{{ message.tags }}" {% endif %}>
+				{{ message }}
+				<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			{% endfor %}
+			{% endif %}
+
+			<form action="{% url 'accounts:edit_profile' %}" method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+
+				<div class="form-group text-center">
+					{% if form.instance.avatar %}
+					<img src="{{ form.instance.avatar.url }}" alt="Profile Picture"
+						style="width: 100px; height: 100px; border-radius: 50%;">
+					{% else %}
+					<a href="{% url 'profile' page_user.username %}">
+						<img src="{% static 'img/user.png' %}" class="user-profile-pic rounded-circle"
+							alt="profile_pic" />
+					</a>
+					{% endif %}
+				</div>
+
+				<!-- Поле для загрузки аватара -->
+
+
+				{% for field in form %}
+				<div class="form-group dark-theme">
+					{{ field.errors }}
+					{{ field.label_tag }}
+					{{ field }}
+				</div>
+				{% endfor %}
+
+				<div class="login_reg_footer">
+					<a href="{% url 'accounts:change_password' %}">Сменить пароль</a>
+					<input type="submit" value="Подтвердить" class="btn btn-secondary">
+				</div>
+
+			</form>
+
+		</div>
+	</div>
+</div>
+
+{% endblock %}

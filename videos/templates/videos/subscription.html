@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %} {{ page_user.username }} {% endblock %}
+
+{% block content %}
+<div class="container my-5">
+
+	{% csrf_token %}
+
+	<h2 class="text-center mb-4">Subscriptions</h2>
+
+	{% if subscriptions %}
+	<ul class="list-group">
+		{% for subscription in subscriptions %}
+		<li class="list-group-item d-flex align-items-center justify-content-between">
+			<a href="/{{ subscription.channel.username }}" class="d-flex align-items-center">
+				{% if subscription.channel.avatar%}
+				<img src="{{ subscription.channel.avatar.url }}" alt="profile_pic"
+					class="user-profile-pic mr-3 rounded-circle">
+				{% else %}
+				<img src="{% static 'img/user.png' %}" alt="default_profile_pic"
+					class="user-profile-pic mr-3 rounded-circle">
+				{% endif %}
+				<span class="channel-username">{{ subscription.channel.username }}</span>
+			</a>
+			<a href="/{{ subscription.channel.username }}" class="btn btn-primary">Перейти на канал</a>
+		</li>
+		{% endfor %}
+	</ul>
+	{% else %}
+	<p class="text-center">You are not subscribed to any channels.</p>
+	{% endif %}
+</div>
+{% endblock %}

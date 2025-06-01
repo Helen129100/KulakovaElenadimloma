@@ -1,0 +1,809 @@
+.modal-header {
+	background-color: #f8f9fa;
+	border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+	font-weight: bold;
+	color: #495057;
+}
+
+.modal-body {
+	padding: 20px;
+}
+
+.form-title {
+	margin-bottom: 15px;
+	font-weight: bold;
+	font-size: 1.25rem;
+}
+
+.form-group {
+	margin-bottom: 15px;
+}
+
+.form-group label {
+	display: block;
+	margin-bottom: 5px;
+	font-weight: bold;
+	color: #495057;
+}
+
+.modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	padding: 15px;
+	background-color: #f8f9fa;
+	border-top: 1px solid #dee2e6;
+}
+
+.btn {
+	border-radius: 5px;
+	padding: 10px 15px;
+}
+
+
+.main_container {
+	display: flex;
+
+}
+
+.profile_nav {
+	display: flex;
+	margin-right: 0;
+
+	justify-content: end;
+}
+
+.input_login_style {
+	border-radius: 15px !important;
+	height: 45px;
+}
+
+
+
+.form-control {
+	background-color: #ffffff !important;
+	/* Черный фон для инпутов */
+	color: rgb(0, 0, 0) !important;
+	/* Белый текст в инпутах */
+}
+
+.form-control::placeholder {
+	color: rgba(255, 255, 255, 0.6);
+	/* Цвет текста подсказки (placeholder) */
+}
+
+
+.container-windows {
+	margin-top: 100px !important;
+}
+
+.icon_style {
+	width: 30px;
+	margin-right: 10px;
+}
+
+.container_base {
+	margin: auto;
+}
+
+.right_side_base {
+	display: flex;
+	justify-content: end;
+	gap: 10px;
+}
+
+.container-first {
+	display: grid;
+	grid-template-columns: 20% 60% 18%;
+	/* Создает 3 колонки равной ширины */
+	gap: 10px;
+	/* Промежуток между колонками */
+	align-items: center;
+
+	max-width: 1800px;
+	border-radius: 30px;
+	margin: auto;
+}
+
+.navbar-nav {
+	margin-top: 10px;
+	border-right: white;
+}
+
+.nav-item {
+
+	border-radius: 10px;
+	width: 300px;
+	margin-bottom: 10px;
+}
+
+.errorlist {
+	color: red;
+}
+
+.form-inline {
+	width: 100% !important;
+}
+
+.navbar-expand-lg {
+
+	flex-flow: column nowrap !important;
+	margin-right: 50px;
+	background-color: white;
+}
+
+.nav-link.active {
+	background-color: #5B5B5B;
+	color: white !important;
+}
+
+.footer-description {
+	padding-top: 20px;
+	border-top: 1px solid grey;
+}
+
+.video_option_container {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+.navbar-collapse {
+
+	align-items: start !important;
+
+}
+
+.navbar-nav {
+
+	flex-direction: column !important;
+}
+
+#thumbnail,
+#remove {
+	cursor: pointer;
+}
+
+.comment-profile {
+	width: 40px;
+	height: 40px;
+}
+
+#remove {
+	font-size: 14px;
+
+}
+
+ul {
+
+	list-style-type: none;
+	margin: 0;
+	padding: 0
+}
+
+.video-owner-pic {
+	width: 60px;
+	height: 60px;
+}
+
+
+.user-profile-pic {
+	width: 300px;
+	height: 70px;
+
+}
+
+li {
+	border-bottom: 1px solid #eeeeee;
+	list-style: none;
+
+}
+
+
+.container {
+	margin-top: 100px;
+}
+
+.gradient_block {
+	height: 300px;
+	/* Максимальная высота блока */
+	background: linear-gradient(to right, #ff69b4, #00bfff);
+	/* Градиент от розового к голубому */
+	width: calc(100% + 130px);
+	/* Увеличиваем ширину на 60px */
+	margin-left: -80px;
+	/* Отрицательный отступ слева */
+	margin-right: -30px;
+	/* Отрицательный отступ справа */
+	margin-bottom: 20px;
+	/* Отступ снизу */
+}
+
+.container_modifacate {
+	margin-top: 50px;
+	display: flex;
+	justify-content: center;
+}
+
+.offset-sm-3 {
+	margin-left: 0%;
+}
+
+.btn-modif {
+	color: white !important;
+	background: #4c1fa7;
+	border: 2px grey solid;
+	border-radius: 15px;
+}
+
+.btn_options {
+	background-color: black !important;
+	width: 20px;
+	height: 20px;
+	display: flex;
+	justify-content: center;
+}
+
+.video_buttons {
+	display: flex;
+	padding-top: 10px;
+	justify-content: right;
+	gap: 10px;
+	border-top: 1px grey solid;
+}
+
+
+.btn-modif_purple {
+	color: white !important;
+	background-color: #181818 !important;
+	border: 2px grey solid !important;
+}
+
+.container_base {
+	max-width: 1800px;
+}
+
+.card {
+	border-radius: 8px;
+	/* Скругление углов карточек */
+	box-shadow: 0 4px 8px rgba(146, 1, 1, 0.1);
+	/* Тень для карточек */
+}
+
+.card-header {
+	background-color: #343a40;
+	/* Темный фон для заголовка карточек */
+	color: #ffffff;
+	/* Белый текст для заголовков */
+	border-top-left-radius: 8px;
+	/* Скругление верхних углов */
+	border-top-right-radius: 8px;
+}
+
+#video-player {
+
+	/* Тонкая рамка вокруг видео */
+	border-radius: 8px;
+	/* Скругление углов видео */
+}
+
+.card-footer {
+	background-color: #ffffff;
+	/* Белый фон для подвала карточек */
+	border-bottom-left-radius: 8px;
+	border-bottom-right-radius: 8px;
+
+
+}
+
+.footer-firstpart {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 10px;
+}
+
+.video-comments {
+	width: 80%;
+}
+
+.card-name {
+	font-size: 20px;
+}
+
+
+.like_dislike_right {
+	display: flex;
+	justify-content: right;
+}
+
+.card_mini {
+	display: grid;
+	grid-template-columns: 70% 20%;
+	gap: 10px;
+
+}
+
+.btn_style {
+	text-align: right;
+}
+
+.login_reg_footer {
+	margin-top: 10px;
+	display: flex;
+	justify-content: space-between;
+}
+
+.btn-secondary {
+	background-color: #4c1fa7;
+	/* Цвет кнопок */
+	border: none;
+
+	/* Убрать рамку */
+	border-radius: 15px;
+	text-align: right;
+	/* Скругление углов кнопок */
+}
+
+.btn-purple {
+	background-color: #6f42c1;
+	/* Фиолетовый цвет */
+	color: white;
+	/* Или другой цвет текста по желанию */
+}
+
+.btn-secondary:hover {
+	background-color: #5a6268;
+	/* Цвет кнопок при наведении */
+}
+
+.video-owner-pic {
+	width: 40px;
+	/* Размер изображения профиля */
+	height: 40px;
+	object-fit: cover;
+	/* Изображение будет обрезано по размеру блока */
+}
+
+.comments {
+	font-weight: bold;
+	/* Жирный шрифт для заголовка комментариев */
+	font-size: 1.2em;
+	/* Увеличение размера шрифта */
+}
+
+#usercomment {
+	border-radius: 20px;
+	/* Скругление поля для ввода комментария */
+	padding: 10px;
+}
+
+#commentcontainer li {
+	list-style-type: none;
+	/* Убираем маркеры у списка комментариев */
+	padding: 10px;
+	border-bottom: 1px solid #dee2e6;
+	/* Линия между комментариями */
+}
+
+#commentcontainer li:last-child {
+	border-bottom: none;
+	/* Убираем последнюю линию у последнего комментария */
+}
+
+/* Основные стили контейнера */
+.container {
+	max-width: 1400px;
+	/* Ограничиваем максимальную ширину */
+}
+
+/* Стили для аватара пользователя */
+.user-profile-pic {
+	width: 100px;
+	/* Фиксированная ширина */
+	height: 100px;
+	/* Фиксированная высота */
+	object-fit: cover;
+	border: 5px solid white;
+
+	/* Корректно обрезаем изображение */
+}
+
+/* Стили для уведомлений */
+.alert {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 15px;
+}
+
+/* Стили для кнопок */
+.btn-outline-secondary {
+	color: #6c757d;
+	/* Цвет текста для кнопок */
+	border-color: #6c757d;
+	/* Цвет рамки для кнопок */
+}
+
+.btn-outline-secondary:hover {
+	background-color: #6c757d;
+	/* Фон при наведении */
+	color: white;
+	/* Цвет текста при наведении */
+}
+
+/* Стили для карточек видео */
+.card {
+	border: none !important;
+	/* Радиус углов */
+	background-color: unset !important;
+	/* Скрыть переполнение */
+	transition: none !important;
+	/* Эффект увеличения */
+}
+
+/*
+.card:hover {
+	transform: scale(1.02);
+	
+}*/
+
+/* Стили для видео */
+.card-body video {
+	border-radius: 0.5rem;
+	/* Радиус углов для видео */
+}
+
+/* Стили для заголовков секций */
+h2 {
+	font-weight: bold;
+	/* Жирный текст */
+}
+
+/* Стили для списка подписок */
+.list-group-item {
+	display: flex;
+	justify-content: space-between;
+	/* Распределяем элементы по горизонтали */
+}
+
+/* Стили для тела карточки */
+.card-footer {
+	background-color: #f8f9fa;
+	/* Фон для нижней части карточки */
+}
+
+/* Стили для текста в карточках */
+.card-text {
+	color: #495057;
+	/* Цвет текста */
+	font-size: 14px;
+	/* Размер шрифта */
+}
+
+/* Общие отступы */
+.mt-5 {
+	margin-top: -3rem !important;
+	margin-bottom: 50px;
+	padding: 0 !important;
+	/* Отступ сверху для элемента */
+}
+
+.mb-3 {
+	margin-bottom: 1rem;
+	/* Отступ снизу для элемента */
+}
+
+
+
+.container {
+	max-width: 1400px;
+	margin: auto;
+}
+
+
+/*
+.card:hover {
+	transform: scale(1.02);
+}*/
+
+.container-home {
+	margin-top: 100px;
+}
+
+.card-body {
+	position: relative;
+	padding: 0;
+	overflow: hidden;
+
+}
+
+video {
+	width: 100%;
+	height: auto;
+	border-bottom: 2px solid #4c1fa7;
+}
+
+
+
+.form-inline {
+	margin: 20px 0;
+}
+
+input[name="q"] {
+	width: calc(60% - 120px);
+	padding: 10px;
+	border-radius: 20px;
+	border: 1px solid #ccc;
+
+}
+
+.btn-primary {
+	background-color: #4c1fa7;
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	border-radius: 20px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+}
+
+.btn_like_dis img {
+	width: 20px;
+	height: 20px;
+
+}
+
+.btn_modif {
+	border: solid 2px #808080;
+}
+
+.btn_like_dis {
+	width: 60px;
+	height: 40px;
+	background: white;
+	display: flex;
+	border-radius: 10px;
+	justify-content: center;
+	align-items: center;
+}
+
+.btn-primary:hover {
+	background-color: #0056b3;
+}
+
+.nav-item_img {
+	width: 25px;
+	height: 25px;
+	margin-right: 10px;
+}
+
+
+.dark-theme .btn_like_dis {}
+
+.dark-theme {
+	background-color: #181818;
+	color: #f0f0f0;
+}
+
+.dark-theme .btn_modif {
+	border: #808080 solid 2px;
+}
+
+.dark-theme .modal-header {
+	background-color: #181818;
+	color: white !important;
+}
+
+.dark-theme .navbar-expand-lg {
+
+	border-right: 1px solid #5B5B5B;
+}
+
+.dark-theme .container-first {
+
+	border-bottom: solid #5B5B5B 1px;
+
+}
+
+.dark-theme .modal-body {
+	background-color: #181818;
+	color: white !important;
+}
+
+.dark-theme .modal-title {
+	background-color: #181818;
+	color: white !important;
+}
+
+.dark-theme .modal-footer {
+	background-color: #181818;
+	color: white !important;
+}
+
+.btn_modif .dark-theme .card-header {
+	background-color: #343a40;
+}
+
+.dark-theme .card-footer {
+	background-color: #181818;
+
+}
+
+.dropdown-menu {
+	z-index: 1050;
+	position: relative !important;
+}
+
+.dark-theme .form-control {
+	background-color: #181818 !important;
+	/* Черный фон для инпутов */
+	color: rgb(255, 255, 255) !important;
+	/* Белый текст в инпутах */
+}
+
+.dark-theme .btn-primary {
+	background-color: #272829;
+}
+
+.dark-theme .btn-primary:hover {
+	background-color: #0056b3;
+}
+
+.dark-theme input[name="q"] {
+	background-color: #181818;
+}
+
+.dark-theme .form-group label {
+
+
+	color: white;
+}
+
+.theme-toggle {
+	cursor: pointer;
+	font-size: 24px;
+	position: relative;
+	width: 30px;
+	height: 30px;
+
+	/* аналог mt-3 */
+}
+
+/* Позиционирование иконок */
+.sun-icon,
+.moon-icon {
+	position: absolute;
+	top: 0;
+	left: 0;
+	transition: opacity 0.3s ease;
+}
+
+.moon-icon {
+	opacity: 0;
+}
+
+/* Темная тема */
+body.dark-theme .sun-icon {
+	opacity: 0;
+}
+
+body.dark-theme .moon-icon {
+	opacity: 1;
+}
+
+/* Общие стили темной темы */
+body.dark-theme {
+	background-color: #121212;
+	color: #ffffff;
+}
+
+
+
+.form-inline {
+	margin: 20px 0;
+}
+
+.input-group {
+	width: 60% !important;
+	max-width: 650px;
+}
+
+input[name="q"] {
+	border-radius: 20px;
+	border: 1px solid #ccc;
+	padding: 10px;
+	width: calc(100% - 50px);
+
+}
+
+.input-group-append {
+	width: 50px;
+}
+
+.btn-primary {
+	background-color: #4c1fa7;
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	border-radius: 20px;
+	cursor: pointer;
+	transition: background-color 0.3s;
+	border: solid 1px;
+}
+
+.form-group {
+	margin-bottom: 0px;
+}
+
+
+.my-3 {
+	margin-top: 10px !important;
+	display: flex;
+}
+
+.dark-theme .navbar {
+	background-color: #121212 !important;
+
+
+}
+
+.dark-theme .nav-link {
+	color: white !important;
+}
+
+.nav-item {
+	color: black !important;
+}
+
+.container_profile {
+	display: flex;
+}
+
+.container_profile_content {
+	display: flex;
+	flex-direction: column;
+	/* Вертикальное расположение элементов */
+	justify-content: flex-end;
+	/* Выравнивание содержимого внизу */
+	height: 100%;
+	margin-top: 30px;
+	/* Полная высота контейнера */
+	padding: 10px;
+	/* Отступы, чтобы элементы не прилипали к краям */
+	box-sizing: border-box;
+	/* Учет отступов и границ в вычислении ширины и высоты */
+}
+
+.row_video {
+	flex-wrap: nowrap !important;
+	gap: 20px;
+}
+
+.container_video {
+	margin-left: 0% !important;
+	margin-right: 0 !important;
+}
+
+.main_video {
+	flex: 0 0 80.666667%;
+	max-width: 80.666667%;
+}
+
+.list-group-item {
+
+	background-color: unset;
+
+}
+
+@media (max-width: 768px) {
+	.col-md-3 {
+		-webkit-box-flex: 0;
+		-ms-flex: 0 0 25%;
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+}

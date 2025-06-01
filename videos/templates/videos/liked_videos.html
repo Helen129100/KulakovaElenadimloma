@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block title %} {{ page_user.username }} - Лайкнутые видео {% endblock %}
+
+{% block content %}
+<div class="container my-5 container-windows">
+	<h2 class="text-center mb-4">Лайкнутые видео</h2>
+
+	{% if liked_videos %}
+
+	<div class="mt-5 col-md-4">
+		{% for like in liked_videos %}
+
+		<a href="{% url 'videos:video' like.video.id %}" class="d-flex align-items-center">
+
+			<div class="mb-3 card_mini">
+
+				<div class="card">
+					<div class="card-body">
+
+						<video id="video-player" width="100%" height="100%" controls>
+
+							<source src="{{ like.video.video_file.url }}" type="video/mp4">
+						</video>
+
+					</div>
+				</div>
+
+			</div>
+		</a>
+		<div class="card-footer_mini">
+			<div class="card-name">
+				{{ like.video.post}}
+			</div>
+			<span class="text-muted">{{ like.created_at|date:"d M Y" }}</span>
+		</div>
+
+	</div>
+</div>
+
+{% endfor %}
+
+{% else %}
+<p class="text-center">У вас нет лайкнутых видео.</p>
+{% endif %}
+</div>
+{% endblock %}

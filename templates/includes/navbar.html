@@ -1,0 +1,47 @@
+{% load i18n %}
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+		aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+	<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+		<div class="navbar-nav">
+			{% if request.user.is_authenticated %}
+			<a class="nav-item nav-link {% if request.resolver_match.url_name == 'home' %}active dark-active{% endif %}"
+				href="{% url 'home' %}">
+				<img class="nav-item_img" src="{% static 'img/house_white.png' %}" alt="">
+				<span class="sr-only">(current)</span>
+			</a>
+			<a class="nav-item nav-link {% if request.resolver_match.url_name == 'subscription' %}active dark-active{% endif %}"
+				href="{% url 'subscription' user.username %}">
+				<img class="nav-item_img" src="{% static 'img/folder_white.png' %}" alt="">
+				<span class="sr-only">(current)</span>
+			</a>
+			<a class="nav-item nav-link {% if request.resolver_match.url_name == 'liked_videos' %}active dark-active{% endif %}"
+				href="{% url 'liked_videos' user.username %}">
+				<img class="nav-item_img" src="{% static 'img/like_white.png' %}" alt="">
+				<span class="sr-only">(current)</span>
+			</a>
+
+			{% endif %}
+
+
+
+
+			<!--	<div class="form-group mt-3">
+				<label for="languageToggle">Language:</label>
+				<select id="languageToggle">
+					<option value="en" {% if "en" in LANGUAGE_CODE %}selected{% endif %}>English</option>
+					<option value="ru" {% if "ru" in LANGUAGE_CODE %}selected{% endif %}>Русский</option>
+
+				</select>
+			</div>-->
+			{% if request.user.is_authenticated %}
+
+			{% endif %}
+
+		</div>
+	</div>
+</nav>

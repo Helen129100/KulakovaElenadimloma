@@ -1,0 +1,28 @@
+<div class="modal-header .dark-theme">
+	<h5 class="modal-title .dark-theme" id="staticBackdropLabel"> Добавить видео</h5>
+	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		<span aria-hidden="true">&times;</span>
+	</button>
+</div>
+
+<div class="modal-body .dark-theme">
+	<div id="video-error" class="alert alert-danger " role="alert">
+		no
+	</div>
+	<form action="" method="post" enctype='multipart/form-data'>
+		{% csrf_token %}
+		{% for field in form %}
+		<div class="form-group">
+			{{ field.errors }}
+			{{ field.label_tag }}
+			{{ field }}
+		</div>
+		{% endfor %}
+	</form>
+
+</div>
+
+<div class="modal-footer .dark-theme">
+	<button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+	<button type="button" id="video_submit" class="btn btn-primary">Подтвердить</button>
+</div>
