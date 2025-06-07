@@ -17,6 +17,10 @@ from pydub import AudioSegment
 from pymorphy2 import MorphAnalyzer  # Добавьте этот импорт
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
+from .model import extract_mel_spectrogram
+from tensorflow.keras.models import load_model
+import numpy as np
+import json
 
 User = get_user_model()
 censored_words = {"бежать", "говорить", "писать"}  # Пример для русского
@@ -38,30 +42,28 @@ def delete_video(request, video_id):
 
 # Функция извлечения аудио
 def extract_audio_from_video(video_path):
-    """Извлекает аудио из видеофайла и сохраняет его во временный файл."""
-    audio_path = video_path.rsplit(".", 1)[0] + ".mp3"  # Сохраним звук в mp3
-    with VideoFileClip(video_path) as video:
-        audio = video.audio
-        audio.write_audiofile(audio_path)
-    return audio_path
+    """
+    Извлекает аудио из видео и сохраняет его в mp3.
+    Возвращает путь к аудио-файлу или None, если не удалось.
+    """
+    try:
+        with VideoFileClip(video_path) as clip:
+            audio = clip.audio
+            if audio is None:
+                print("❌ В видео нет аудио-дорожки")
+                return None
+
+            base, _ = os.path.splitext(video_path)
+            audio_path = base + ".mp3"
+
+            audio.write_audiofile(audio_path)
+            return audio_path
+
+    except Exception as e:
+        print(f"❌ Ошибка при извлечении аудио: {e}")
+        return None
 
 
-def convert_to_wav(audio_path, output_format="wav"):
-    """Конвертирует аудиофайл в WAV (если он не в формате WAV)"""
-    if not audio_path.lower().endswith(".wav"):
-        sound = AudioSegment.from_file(audio_path)
-        wav_path = audio_path.rsplit(".", 1)[0] + ".wav"
-        sound.export(wav_path, format=output_format)
-        return wav_path
-    return audio_path
-
-
-def remove_punctuation(text):
-    """Удаляет пунктуацию из текста"""
-    return text.translate(str.maketrans("", "", string.punctuation))
-
-
-@login_required
 def add_video(request):
     data = {}
     form = VideoForm()
@@ -74,25 +76,28 @@ def add_video(request):
             video.user = request.user
             video.video_file = form.cleaned_data.get("video_file")
             video.post = form.cleaned_data.get("post")
-
-            # Сначала сохраняем, чтобы файл появился на диске
             video.save()
 
-            # Теперь безопасно получить путь
             video_path = video.video_file.path
+            censorship_mode = request.POST.get("censorship_mode")
 
-            # Обработка видео
+            # Проверка на цензуру
             if not process_video(video_path):
-                # удалим файл из базы и диска, если не прошло проверку
-                video.video_file.delete(save=False)
-                video.delete()
-                print("error")
-                data["form_is_valid"] = False
-                data["error"] = "Видео содержит запрещенные слова."
-                data["video_form"] = render_to_string(
-                    "videos/video_form.html", {"form": form}, request=request
-                )
-                return JsonResponse(data)
+                if censorship_mode:
+                    # Применить автоматическую цензуру
+                    # apply_audio_censorship(video_path, censorship_mode)
+                    data["form_is_valid"] = True
+                    return JsonResponse(data)
+                else:
+                    # Удалить неподходящее видео
+                    video.video_file.delete(save=False)
+                    video.delete()
+                    data["form_is_valid"] = False
+                    data["error"] = "Видео не прошло цензуру"
+                    data["video_form"] = render_to_string(
+                        "videos/video_form.html", {"form": form}, request=request
+                    )
+                    return JsonResponse(data)
 
             data["form_is_valid"] = True
             return JsonResponse(data)
@@ -109,79 +114,31 @@ def add_video(request):
     return JsonResponse(data)
 
 
-def remove_punctuation(text):
-    """Удаляет пунктуацию из текста"""
-    return text.translate(str.maketrans("", "", string.punctuation))
-
-
-def find_matches(text, censored_words):
-    morph = MorphAnalyzer()
-    found_words = set()
-    clean_text = remove_punctuation(text)
-    words = clean_text.split()
-
-    # Генерируем все формы целевых слов
-    inflected_words = set()
-    for target_word in censored_words:
-        parsed_word = morph.parse(target_word)[0]
-        inflected_words.update(
-            [form.word for form in parsed_word.lexeme]
-        )  # Добавляем все формы слова
-
-    for word in words:
-        parsed = morph.parse(word)[0]
-        lemma = parsed.normal_form.lower()  # Приводим к нижнему регистру
-
-        if lemma in inflected_words:
-            found_words.add(lemma)
-
-    return len(found_words) > 0
-
-
-def audio_to_text(audio_path):
-    """Конвертирует аудио в текст"""
-    r = sr.Recognizer()
-    try:
-        # Конвертируем в WAV, если нужно
-        wav_path = convert_to_wav(audio_path)
-
-        with sr.AudioFile(wav_path) as source:
-            audio = r.record(source)
-        text = r.recognize_google(audio, language="ru-RU")  # Для русского
-        return text
-    except Exception as e:
-        print(f"Ошибка распознавания в файле {os.path.basename(audio_path)}: {e}")
-        return ""
-    finally:
-        # Удаляем временный WAV-файл, если он был создан
-        if (
-            "wav_path" in locals()
-            and wav_path != audio_path
-            and os.path.exists(wav_path)
-        ):
-            os.remove(wav_path)
-
-
 def process_video(video_path):
-    """Основная функция обработки видео с проверкой на цензуру"""
+    # 1) Извлекаем аудио
     audio_path = extract_audio_from_video(video_path)
+    if not audio_path:
+        # не смогли получить аудио — отклоняем видео
+        return True
 
-    # Конвертируем аудио в текст
-    text = audio_to_text(audio_path)
-    result = True
-    if text:
+    print("🎧 Аудио извлечено:", audio_path)
 
-        has_matches = find_matches(text, censored_words)
+    # 2) Получаем фичи
+    try:
+        features = extract_mel_spectrogram(audio_path, augment=False)
+    except Exception as e:
+        print(f"❌ Ошибка при извлечении мел-спектрограммы: {e}")
+        return False
 
-        if has_matches:
-            result = False
-        else:
-            result = True
+    features = np.expand_dims(features, axis=(0, -1))
 
-    else:
+    # 3) Загружаем модель и предсказываем
+    model_path = os.path.join(os.path.dirname(__file__), "best_model.h5")
+    model = load_model(model_path)
+    prediction = float(model.predict(features)[0][0])
 
-        result = False
-    return result
+    print(f"🔍 Вероятность запрещённого слова: {prediction:.3f}")
+    return prediction <= 0.7
 
 
 @login_required
@@ -419,3 +376,20 @@ def set_language(request):
 
     print("Invalid request method.")  # Логируем неверный метод
     return JsonResponse({"success": False, "error": "Invalid request method."})
+
+
+def video_editor(request):
+    return render(request, "videos/video_editor.html")
+
+
+def blur_data_api(
+    request,
+):
+    blur_file = f"media/json_video/video_blurred.mp4.json"
+    if request.method == "GET":
+        with open(blur_file) as f:
+            return JsonResponse(json.load(f), safe=False)
+    elif request.method == "POST":
+        with open(blur_file, "w") as f:
+            json.dump(json.loads(request.body), f, indent=2)
+        return JsonResponse({"status": "ok"})

@@ -19,4 +19,6 @@ urlpatterns = [
     path(
         "set_language/", views.set_language, name="set_language"
     ),  # Добавленный маршрут
+    path("videos/video_editor", views.video_editor, name="video_editor"),
+    path("video_editor/start", views.blur_data_api, name="blur_data_api"),
 ]

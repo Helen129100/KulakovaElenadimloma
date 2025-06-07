@@ -53,6 +53,12 @@
 							{% trans "Загрузить видео" %}
 						</button>
 						<a class=" nav-link" href="{% url 'accounts:logout' %}">Выйти из аккаунта</a>
+
+
+						<a href="{% url 'videos:video_editor' %}" role="button"
+							class="btn btn-modif_purple btn-outline-secondary btn-sm">
+							{% trans "редактировать видео " %}
+						</a>
 					</div>
 					{% endif %}
 				</div>

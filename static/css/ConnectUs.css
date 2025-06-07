@@ -1,6 +1,77 @@
+/*modal window*/
+#censorship-warning {
+	border-top: 1px solid #5B5B5B;
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+
+.btn_videohost_color1 {
+	/* Основные стили */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 12px;
+	border: 1px solid #5B5B5B;
+	border-radius: 6px;
+	font-size: 16px;
+
+	cursor: pointer;
+	transition: all 0.3s ease;
+	position: relative;
+	overflow: hidden;
+
+	/* Цвета */
+	background: unset;
+	color: white;
+}
+
+.btn_videohost_color {
+	/* Основные стили */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 12px;
+	border: none;
+	border-radius: 6px;
+	font-size: 16px;
+
+	cursor: pointer;
+	transition: all 0.3s ease;
+	position: relative;
+	overflow: hidden;
+
+	/* Цвета */
+	background: linear-gradient(135deg, #541ad0 0%, #6126e0 50%, #602ad4 100%);
+	color: white;
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+/*modal window*/
 .modal-header {
 	background-color: #f8f9fa;
 	border-bottom: 1px solid #dee2e6;
+}
+
+.modal-dialog {
+	max-width: 800px;
+	background-color: white;
+}
+
+.modal-content {
+
+	background-color: unset;
 }
 
 .modal-title {
@@ -581,6 +652,9 @@ input[name="q"] {
 	margin-right: 10px;
 }
 
+.dark-theme .modal-dialog {
+	background-color: #181818;
+}
 
 .dark-theme .btn_like_dis {}
 

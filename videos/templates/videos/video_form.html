@@ -1,28 +1,183 @@
-<div class="modal-header .dark-theme">
-	<h5 class="modal-title .dark-theme" id="staticBackdropLabel"> Добавить видео</h5>
-	<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<div class="modal-header">
+
+	<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
 		<span aria-hidden="true">&times;</span>
 	</button>
 </div>
+<div class="upload-container">
+	<h1>Добавить видео</h1>
 
-<div class="modal-body .dark-theme">
-	<div id="video-error" class="alert alert-danger " role="alert">
-		no
-	</div>
-	<form action="" method="post" enctype='multipart/form-data'>
+	<form id="video-upload-form" action="" method="post" enctype="multipart/form-data">
 		{% csrf_token %}
-		{% for field in form %}
-		<div class="form-group">
-			{{ field.errors }}
-			{{ field.label_tag }}
-			{{ field }}
+
+		<!-- Drag and Drop зона для видео -->
+		<div class="drop-zone">
+			<p class="drop-zone__prompt">Перетащите видеофайл сюда или выберите файл вручную</p>
+			{{ form.video_file }}
+			<div id="file-info" style="margin-top: 10px; display: none;">
+				<p style="color: green; font-weight: bold;" id="file-name-display">Файл выбран: </p>
+			</div>
 		</div>
-		{% endfor %}
+		{{ form.video_file.errors }}
+
+		<!-- Название видео -->
+		<div class="form-group">
+			<label for="{{ form.post.id_for_label }}">Название видео <span class="required-star">*</span></label>
+			{{ form.post }}
+			{{ form.post.errors }}
+		</div>
+
+		<!-- Описание -->
+		<div class="form-group">
+			<label for="{{ form.description.id_for_label }}">Описание</label>
+			{{ form.description }}
+			{{ form.description.errors }}
+		</div>
+
+		<!-- Теги -->
+		<div class="form-group">
+			<label for="{{ form.tags.id_for_label }}">Теги (через запятую)</label>
+			{{ form.tags }}
+			{{ form.tags.errors }}
+		</div>
+
+		<p class="note">Ваше видео будет приватным, пока вы не опубликуете его.</p>
+
+
 	</form>
 
+	<!-- Остальные элементы (цензура и т.д.) -->
+	<div id="censorship-warning" class="" style="display: none;">
+		Видео не прошло цензуру. Выберите действие:
+		<div class="mt-2">
+			<button id="start_censorship" class="btn_videohost_color">Пройти автоматическую цензуру</button>
+			<button id="cancel_upload" class="btn_videohost_color1">Не загружать видео</button>
+		</div>
+	</div>
+	<!-- Скрытая форма выбора звука -->
+	<div id="censorship-options" style="display: none;">
+		<label for="mute_sound">Выберите тип звука для замены:</label>
+		<select id="mute_sound" class="form-control">
+			<option value="beep">Звук "бип"</option>
+			<option value="silence">Полная тишина</option>
+			<option value="music">Фоновая музыка</option>
+		</select>
+		<button id="confirm_censorship" class="btn_videohost_color">Подтвердить и загрузить видео</button>
+	</div>
+	<div class="modal-footer .dark-theme">
+		<button type="button" class="btn_videohost_color1" data-dismiss="modal">Закрыть</button>
+		<button type="button" id="video_submit" class="btn_videohost_color">Подтвердить</button>
+	</div>
 </div>
 
-<div class="modal-footer .dark-theme">
-	<button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
-	<button type="button" id="video_submit" class="btn btn-primary">Подтвердить</button>
-</div>
+<style>
+	/* Основные стили */
+	.upload-container {
+		max-width: 600px;
+		margin: 0 auto;
+		padding: 20px;
+
+		border-radius: 8px;
+		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+	}
+
+	/* Drag and Drop зона */
+	.drop-zone {
+		position: relative;
+		border: 2px dashed #ccc;
+		border-radius: 5px;
+		padding: 30px;
+		text-align: center;
+		margin-bottom: 20px;
+		cursor: pointer;
+		transition: all 0.3s;
+	}
+
+	.drop-zone input[type="file"] {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+		opacity: 0;
+		cursor: pointer;
+	}
+
+	.drop-zone--over {
+		border-color: #065fd4;
+		background-color: rgba(6, 95, 212, 0.05);
+	}
+
+	.drop-zone__prompt {
+		color: #666;
+		margin: 0;
+	}
+
+	/* Стили для полей формы */
+	.form-group {
+		margin-bottom: 20px;
+	}
+
+	label {
+		display: block;
+		margin-bottom: 8px;
+		font-weight: bold;
+	}
+
+	.form-control {
+		width: 100%;
+		padding: 10px;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		box-sizing: border-box;
+	}
+
+	.input_login_style {
+		/* Ваши дополнительные стили для полей ввода */
+	}
+
+	textarea.form-control {
+		min-height: 100px;
+		resize: vertical;
+	}
+
+	/* Кнопки */
+	.btn {
+		padding: 10px 20px;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	.btn-primary {
+		background-color: #065fd4;
+		color: white;
+	}
+
+	.btn-primary:hover {
+		background-color: #0549a8;
+	}
+
+	/* Обязательные поля */
+	.required-star {
+		color: red;
+	}
+
+	/* Сообщение */
+	.note {
+		color: #666;
+		font-size: 14px;
+		margin-bottom: 20px;
+	}
+
+	/* Ошибки */
+	.errorlist {
+		color: red;
+		margin: 5px 0 0;
+		padding: 0;
+		list-style: none;
+		font-size: 14px;
+	}
+
+	/* Скрываем стандартный input file */
+</style>

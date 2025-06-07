@@ -115,93 +115,109 @@ document.addEventListener("keydown",  function(e) {
 
 
 document.addEventListener("click", function(e) {
- 
-
-    if(e.target.id == "upload") {
-    
+    if (e.target.id == "upload") {
         beforeSend();
-       
+
         fetch('/videos/add_video/', {
-        
-        headers:{
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest', 
-        },
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
         })
-        .then(response => {
-          return response.json() 
-        })
+        .then(response => response.json())
         .then(data => {
-      
-         
-          document.getElementById("modal-content").innerHTML = data.video_form;
-         
-         
-        })
-         
+            document.getElementById("modal-content").innerHTML = data.video_form;
+
+            // 🔥 ВАЖНО: инициализация скрипта после вставки HTML
+            initVideoUploadEvents();
+        });
     }
-     
-   
 });
 
 
 
 
 
-  
-document.addEventListener("click", function(e) {
+ document.addEventListener("click", function (e) {
+    if (e.target.id === "video_submit") {
+		console.log("video_prob");
+        let formdata = new FormData();
+        let video_file = document.getElementById('id_video_file').files[0];
+        let csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        let post = document.querySelector('input[name="post"]').value;
 
-    
- 
-    if(e.target.id == "video_submit" ) {
-    console.log("error");
-    
-      let formdata = new FormData();  
- 
-      let video_file = document.getElementById('id_video_file').files[0];
-     
-      formdata.append('video_file', video_file ); 
-      
-      let csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-      
-      formdata.append('csrfmiddlewaretoken', csrf);
-    
-      let post = document.querySelector('input[name="post"]').value;
-        
-      formdata.append('post',  post)
-   
-      fetch('/videos/add_video/', {
-      method: 'POST',
-      mode: 'same-origin',  
-      headers:{
-        'Accept': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-CSRFToken': csrf,
-      },
-      body: formdata 
-      })
-      .then(response => {
-          return response.json() 
-      })
-      .then(data => {
-      
-         if (!data.form_is_valid){
-			console.log("error_tem");
-           document.getElementById("video-error").textContent  = "Видео не прошло цензуру";
-               document.getElementById("modal-content").innerHTML = " ";
-               document.getElementById("modal-content").innerHTML = data.video_form;
-             
-         } else if (data.form_is_valid) {
-               $("#staticBackdrop").modal("hide");
-               location.reload();  
-         }
-             
+        formdata.append('video_file', video_file);
+        formdata.append('post', post);
+        formdata.append('csrfmiddlewaretoken', csrf);
+
+        fetch('/videos/add_video/', {
+            method: 'POST',
+            mode: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrf,
+            },
+            body: formdata
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.form_is_valid) {
                     
-       })
-         
+               
+
+                    document.getElementById("modal-content").innerHTML = data.video_form;
+
+                    // Показать блок с предупреждением
+                    setTimeout(() => {
+                        document.getElementById("censorship-warning").style.display = "block";
+                    }, 300);
+                } else {
+                    $("#staticBackdrop").modal("hide");
+                    location.reload();
+                }
+            });
     }
-     
-}); 
+
+    if (e.target.id === "cancel_upload") {
+        $("#staticBackdrop").modal("hide");
+    }
+
+    if (e.target.id === "start_censorship") {
+        document.getElementById("censorship-options").style.display = "block";
+    }
+
+    if (e.target.id === "confirm_censorship") {
+        let sound_option = document.getElementById("mute_sound").value;
+        let formdata = new FormData();
+        let video_file = document.getElementById('id_video_file').files[0];
+        let csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        let post = document.querySelector('input[name="post"]').value;
+
+        formdata.append('video_file', video_file);
+        formdata.append('post', post);
+        formdata.append('csrfmiddlewaretoken', csrf);
+        formdata.append('censorship_mode', sound_option);
+
+        fetch('/videos/add_video/', {
+            method: 'POST',
+            mode: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrf,
+            },
+            body: formdata
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.form_is_valid) {
+                    $("#staticBackdrop").modal("hide");
+                    location.reload();
+                }
+            });
+    }
+});
   
   
   
@@ -362,7 +378,63 @@ let modifiedString = likeIcon.src.slice(0, -9);
 			likeIcon.src=modifiedString;
 		}
 	}
-	
+function initVideoUploadEvents() {
+	const dropZone = document.querySelector('.drop-zone');
+	const fileInput = document.querySelector('#id_video_file');
+	const prompt = document.querySelector('.drop-zone__prompt');
 
+	if (!dropZone || !fileInput || !prompt) {
+		console.warn("⛔ Не найдены элементы модалки для загрузки видео.");
+		return;
+	}
 
-  
+	console.log("✅ Инициализация drop zone выполнена");
+
+	dropZone.addEventListener('click', () => {
+		fileInput.click();
+		console.log("📥 Клик по зоне drop");
+	});
+
+	['dragenter', 'dragover'].forEach(eventName => {
+		dropZone.addEventListener(eventName, (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			dropZone.classList.add('drop-zone--over');
+		}, false);
+	});
+
+	['dragleave', 'drop'].forEach(eventName => {
+		dropZone.addEventListener(eventName, (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			dropZone.classList.remove('drop-zone--over');
+		}, false);
+	});
+
+	dropZone.addEventListener('drop', (e) => {
+		const dt = e.dataTransfer;
+		const files = dt.files;
+		if (files.length) {
+			fileInput.files = files;
+			updatePrompt(files[0].name);
+		}
+	});
+
+	fileInput.addEventListener('change', () => {
+		if (fileInput.files.length) {
+			updatePrompt(fileInput.files[0].name);
+		}
+	});
+
+	function updatePrompt(fileName) {
+		prompt.textContent = "Файл выбран:";
+		prompt.style.fontWeight = "normal";
+		prompt.style.color = "#333";
+
+		const fileInfo = document.getElementById("file-info");
+		const fileNameDisplay = document.getElementById("file-name-display");
+
+		fileNameDisplay.textContent = "✅ " + fileName;
+		fileInfo.style.display = "block";
+	}
+}

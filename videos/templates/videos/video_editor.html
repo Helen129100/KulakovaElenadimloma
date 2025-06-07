@@ -1,0 +1,683 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+	.container {
+		display: flex;
+		gap: 20px;
+		max-width: 1280px;
+		/* Увеличиваем общую ширину */
+		margin: 0 auto;
+		padding: 20px;
+	}
+
+	#video-container {
+		position: relative;
+		width: 960px;
+		/* Фиксированная ширина плеера */
+		margin: 0;
+	}
+
+	#player {
+		position: relative;
+		background: #222;
+		border-radius: 8px;
+		overflow: hidden;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+	}
+
+	#player video {
+		width: 100%;
+		display: block;
+	}
+
+	#controls {
+		display: flex;
+		align-items: center;
+		padding: 10px;
+		background: #333;
+	}
+
+	#playPause {
+		background: none;
+		border: none;
+		color: #fff;
+		font-size: 18px;
+		margin-right: 10px;
+		cursor: pointer;
+	}
+
+	#seek {
+		flex: 1;
+	}
+
+	#seek input[type="range"] {
+		width: 100%;
+	}
+
+	video {
+		z-index: 1;
+		width: 100%;
+		border-radius: 8px;
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+	}
+
+	canvas {
+		position: absolute;
+		top: 0;
+		left: 0;
+		z-index: 2;
+		pointer-events: auto;
+	}
+
+	.timeline_container {
+		padding-top: 10px;
+	}
+
+	#timeline {
+		position: relative;
+		width: 100%;
+		height: 30px;
+		background: #eee;
+		border-radius: 5px;
+		margin-bottom: 40px;
+		overflow: visible;
+		box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+	}
+
+	.blur-marker {
+		position: absolute;
+		height: 100%;
+		background: rgba(255, 0, 0, 0.5);
+	}
+
+	.time-tick {
+		position: absolute;
+		top: 0;
+		width: 1px;
+		height: 100%;
+		background: #666;
+	}
+
+	.time-tick-label {
+		position: absolute;
+		top: 100%;
+		transform: translateX(-50%);
+		margin-top: 2px;
+		font-size: 12px;
+		color: #333;
+		white-space: nowrap;
+	}
+
+	.playhead {
+		position: absolute;
+		top: 0;
+		width: 2px;
+		height: 100%;
+		background: #007bff;
+		z-index: 3;
+	}
+
+	#overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		z-index: 2;
+		pointer-events: auto;
+	}
+
+
+
+	button:hover {
+		background: #45a049;
+	}
+
+	.editor-controls {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: 120px;
+		/* Ширина панели управления */
+		padding: 15px;
+		border: solid #5B5B5B 1px;
+
+		border-radius: 5px;
+		height: fit-content;
+	}
+
+	.editor-controls button,
+	.editor-controls select {
+		padding: 8px 12px;
+		border: 1px solid #ccc;
+		border-radius: 3px;
+		border: solid #5B5B5B 1px;
+		background-color: #eae8e8;
+		cursor: pointer;
+		width: 100%;
+		text-align: center;
+	}
+
+	.editor-controls button:hover {
+		background: #e0e0e0;
+	}
+
+	#seekBar {
+		flex-grow: 1;
+		min-width: 200px;
+	}
+</style>
+
+<div class="container">
+	<div id="video-container">
+		<div id="player">
+			<video id="video" src="/media/videos/video5341398135929337878.mp4"></video>
+			<canvas id="overlay"></canvas>
+			<div id="controls">
+				<button id="playPause">►</button>
+				<div id="seek">
+					<input type="range" id="seekBar" value="0" min="0" step="0.01">
+				</div>
+			</div>
+		</div>
+		<div class="timeline_container">
+			<div id="timeline">
+				<div id="playhead" class="playhead"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="editor-controls">
+		<button id="undoBtn" title="Undo (Ctrl+Z)">↩️ </button>
+		<button id="redoBtn" title="Redo (Ctrl+Y)">↪️ </button>
+		<button id="deleteBtn" title="Delete selected (Del)">❌ </button>
+		<button id="saveBtn" onclick="saveData()">💾 </button>
+		<select id="effectType">
+			<option value="blur">Blur</option>
+			<option value="pixelate">Pixelate</option>
+			<option value="black">Black box</option>
+		</select>
+	</div>
+</div>
+<script>
+	const video = document.getElementById('video');
+	const canvas = document.getElementById('overlay');
+	const timeline = document.getElementById('timeline');
+	const playhead = document.getElementById('playhead');
+	const ctx = canvas.getContext('2d');
+	let blurData = [];
+	let isDrawing = false;
+	let currentRect = null;
+	let videoScale = { x: 1, y: 1 };
+	let pixelateCacheCanvas = document.createElement('canvas');
+	let pixelateCacheCtx = pixelateCacheCanvas.getContext('2d');
+
+
+	function applyCustomBlur(ctx, x, y, width, height, radius = 5) {
+		// Создаем временные canvas
+		let tempCanvas1 = document.createElement('canvas');
+		let tempCanvas2 = document.createElement('canvas');
+		tempCanvas1.width = tempCanvas2.width = width;
+		tempCanvas1.height = tempCanvas2.height = height;
+
+		let tempCtx1 = tempCanvas1.getContext('2d');
+		let tempCtx2 = tempCanvas2.getContext('2d');
+
+		// Копируем область
+		tempCtx1.drawImage(video, x, y, width, height, 0, 0, width, height);
+
+		// Применяем размытие по Гауссу
+		for (let i = 0; i < radius; i++) {
+			tempCtx2.clearRect(0, 0, width, height);
+			tempCtx2.filter = 'blur(3px)';
+			tempCtx2.drawImage(tempCanvas1, 0, 0);
+
+			// Меняем canvas местами для следующей итерации
+			const tempCanvas = tempCanvas1;
+			tempCanvas1 = tempCanvas2;
+			tempCanvas2 = tempCanvas;
+
+			const tempCtx = tempCtx1;
+			tempCtx1 = tempCtx2;
+			tempCtx2 = tempCtx;
+		}
+
+		// Рисуем результат
+		ctx.drawImage(tempCanvas1, x, y, width, height);
+	}
+	function pixelateEffect(ctx, x, y, width, height, pixelSize) {
+		ctx.save();
+
+		const smallWidth = Math.max(1, Math.floor(width / pixelSize));
+		const smallHeight = Math.max(1, Math.floor(height / pixelSize));
+
+		// Используем кэшированный canvas
+		pixelateCacheCanvas.width = smallWidth;
+		pixelateCacheCanvas.height = smallHeight;
+
+		pixelateCacheCtx.drawImage(
+			video,
+			x, y, width, height,
+			0, 0, smallWidth, smallHeight
+		);
+
+		ctx.imageSmoothingEnabled = false;
+		ctx.drawImage(
+			pixelateCacheCanvas,
+			0, 0, smallWidth, smallHeight,
+			x, y, width, height
+		);
+
+		ctx.restore();
+	}
+	// Load initial blur data
+	fetch('/media/json_video/video5341398135929337878.json')
+		.then(res => res.json())
+		.then(data => {
+			blurData = data;
+			video.addEventListener('loadedmetadata', initVideo);
+		});
+	function initVideo() {
+		canvas.width = video.videoWidth;
+		canvas.height = video.videoHeight;
+		console.log("Video dimensions:", video.videoWidth, "x", video.videoHeight);
+
+		// Calculate scale factors from original 640x640 to actual video size
+		const scaleX = video.videoWidth / 640;
+		const scaleY = video.videoHeight / 640;
+
+		// Scale existing blur regions from 640x640 to video dimensions
+		blurData = blurData.map(b => ({
+			...b,
+			x: Math.round(b.x * scaleX),
+			y: Math.round(b.y * scaleY) + 80,
+			width: Math.round(b.width * scaleX),
+			height: Math.round(b.height * scaleY) + 100
+		}));
+
+		// Calculate scale factors for current display
+		const videoRect = video.getBoundingClientRect();
+		videoScale.x = video.videoWidth / videoRect.width;
+		videoScale.y = video.videoHeight / videoRect.height;
+
+		drawTimeline();
+		requestAnimationFrame(render);
+	}
+	function drawTimeline() {
+		timeline.innerHTML = '';
+		const duration = video.duration || 0;
+		const pxPerSec = timeline.clientWidth / duration;
+
+		// Draw blur markers
+		blurData.forEach(b => {
+			if (!b.active) return;
+
+			const marker = document.createElement('div');
+			marker.className = 'blur-marker';
+			marker.style.left = (b.start / duration * 100) + '%';
+			marker.style.width = ((b.end - b.start) / duration * 100) + '%';
+			timeline.appendChild(marker);
+		});
+
+		// Draw time ticks
+		for (let t = 0; t <= Math.floor(duration); t++) {
+			const x = t * pxPerSec;
+			const tick = document.createElement('div');
+			tick.className = 'time-tick';
+			tick.style.left = x + 'px';
+			timeline.appendChild(tick);
+
+			const label = document.createElement('div');
+			label.className = 'time-tick-label';
+			label.style.left = x + 'px';
+			const m = Math.floor(t / 60), s = (t % 60).toString().padStart(2, '0');
+			label.textContent = `${m}:${s}`;
+			timeline.appendChild(label);
+		}
+
+		// Add playhead
+		const ph = document.createElement('div');
+		ph.id = 'playhead';
+		ph.className = 'playhead';
+		ph.style.left = '0px';
+		timeline.appendChild(ph);
+	}
+	let currentEffectType = 'blur';
+
+	document.getElementById('effectType').addEventListener('change', (e) => {
+		currentEffectType = e.target.value;
+	});
+
+	// Модифицируем render() для разных эффектов:
+	function render() {
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		const currentTime = video.currentTime;
+
+		// Draw video frame first
+		ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+		// Apply effects
+		blurData.forEach((b, index) => {
+			if (b.active && currentTime >= b.start && currentTime <= b.end) {
+				// Применяем выбранный эффект
+				switch (b.effect || currentEffectType) {
+					case 'blur':
+						applyCustomBlur(ctx, b.x, b.y, b.width, b.height, 10);
+						break;
+					case 'pixelate':
+						// Реализация пикселизации
+						pixelateEffect(ctx, b.x, b.y, b.width, b.height, 10);
+						break;
+					case 'black':
+						ctx.fillStyle = 'black';
+						ctx.fillRect(b.x, b.y, b.width, b.height);
+						break;
+				}
+
+				if (selectedBlurRegions.includes(index)) {
+					ctx.strokeStyle = 'red';
+					ctx.lineWidth = 2;
+					ctx.strokeRect(b.x, b.y, b.width, b.height);
+				}
+			}
+		});
+
+		// Draw current rectangle being drawn
+		if (isDrawing && currentRect) {
+			ctx.strokeStyle = '#00ff00';
+			ctx.lineWidth = 2;
+			ctx.strokeRect(
+				currentRect.x,
+				currentRect.y,
+				currentRect.width,
+				currentRect.height
+			);
+		}
+
+		requestAnimationFrame(render);
+	}
+
+	canvas.addEventListener('mousedown', (e) => {
+		if (e.button !== 0) return; // Only left mouse button
+
+		const rect = canvas.getBoundingClientRect();
+		const x = (e.clientX - rect.left) * videoScale.x;
+		const y = (e.clientY - rect.top) * videoScale.y;
+
+		isDrawing = true;
+		currentRect = {
+			x: x,
+			y: y,
+			width: 0,
+			height: 0,
+			start: video.currentTime,
+			end: video.currentTime + 0.5  // Default 1 second duration
+		};
+
+		// Предотвращаем всплытие события, чтобы click не сработал
+		e.stopPropagation();
+	});
+
+	canvas.addEventListener('mousemove', (e) => {
+		if (!isDrawing || !currentRect) return;
+
+		const rect = canvas.getBoundingClientRect();
+		const x = (e.clientX - rect.left) * videoScale.x;
+		const y = (e.clientY - rect.top) * videoScale.y;
+
+		currentRect.width = x - currentRect.x;
+		currentRect.height = y - currentRect.y;
+
+		// Предотвращаем всплытие события
+		e.stopPropagation();
+	});
+
+
+	canvas.addEventListener('mouseup', (e) => {
+		if (!isDrawing || !currentRect || e.button !== 0) return;
+
+		isDrawing = false;
+
+		// Normalize negative width/height
+		let { x, y, width, height } = currentRect;
+		if (width < 0) { x += width; width = -width; }
+		if (height < 0) { y += height; height = -height; }
+
+		// Add new blur region if size is reasonable
+		if (width > 10 && height > 10) {
+			blurData.push({
+				x: Math.round(x),
+				y: Math.round(y),
+				width: Math.round(width),
+				height: Math.round(height),
+				start: currentRect.start,
+				end: currentRect.end,
+				active: true
+			});
+
+			// Снимаем выделение со всех областей (включая только что созданную)
+			selectedBlurRegions = [];
+			drawTimeline();
+		}
+
+		currentRect = null;
+		e.stopPropagation();
+		saveToHistory();
+	});
+	// Функция для сохранения состояния в историю
+	function saveToHistory() {
+		// Удаляем все состояния после текущего индекса (если мы откатились назад и сделали новое изменение)
+		history = history.slice(0, historyIndex + 1);
+
+		// Сохраняем копию текущего состояния
+		history.push(JSON.parse(JSON.stringify(blurData)));
+		historyIndex++;
+
+		// Ограничиваем размер истории (например, последние 50 действий)
+		if (history.length > 50) {
+			history.shift();
+			historyIndex--;
+		}
+
+		console.log(`History saved (${history.length} items)`);
+	}
+	// Handle clicks to delete blur regions
+	// Handle clicks to delete blur regions
+	let selectedBlurRegions = [];
+
+	canvas.addEventListener('click', (e) => {
+		if (isDrawing) return;
+
+		const rect = canvas.getBoundingClientRect();
+		const x = (e.clientX - rect.left) * videoScale.x;
+		const y = (e.clientY - rect.top) * videoScale.y;
+		const currentTime = video.currentTime;
+
+		// Находим все блоки под курсором
+		const newSelected = [];
+		for (let i = 0; i < blurData.length; i++) {
+			const b = blurData[i];
+
+			if (b.active &&
+				currentTime >= b.start &&
+				currentTime <= b.end &&
+				x >= b.x &&
+				x <= b.x + b.width &&
+				y >= b.y &&
+				y <= b.y + b.height) {
+
+				// Добавляем индекс в массив выбранных
+				newSelected.push(i);
+			}
+		}
+
+		// Если клик был вне всех областей - снимаем выделение
+		// Если клик был внутри области - выделяем только её (даже если уже была выделена)
+		selectedBlurRegions = newSelected;
+	});
+
+	function deleteSelectedRegions() {
+		if (selectedBlurRegions.length > 0) {
+			saveToHistory(); // Сохраняем в историю перед удалением
+			selectedBlurRegions.sort((a, b) => b - a).forEach(index => {
+				blurData.splice(index, 1);
+			});
+			selectedBlurRegions = [];
+			drawTimeline();
+		}
+	}
+
+	// Обработчик клавиши Delete
+	document.addEventListener('keydown', (e) => {
+		// Проверяем нажатие Delete (код 46) или Backspace (код 8)
+		if ((e.keyCode === 46 || e.keyCode === 8) && selectedBlurRegions.length > 0) {
+			deleteSelectedRegions();
+			e.preventDefault();
+		}
+	});
+
+	// Обработчик кнопки Delete
+	document.getElementById('deleteBtn').addEventListener('click', deleteSelectedRegions);
+
+
+	function saveData() {
+		fetch('/media/json_video/result_blur', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(blurData)
+		}).then(_ => alert('✅ Saved!'));
+	}
+
+	// Video controls
+	const playPause = document.getElementById('playPause');
+	const seekBar = document.getElementById('seekBar');
+
+	playPause.addEventListener('click', () => {
+		if (video.paused) {
+			video.play();
+			playPause.textContent = '❚❚';
+		} else {
+			video.pause();
+			playPause.textContent = '►';
+		}
+	});
+
+	video.addEventListener('loadedmetadata', () => {
+		seekBar.max = video.duration;
+		drawTimeline();
+	});
+
+	video.addEventListener('timeupdate', () => {
+		seekBar.value = video.currentTime;
+	});
+
+	seekBar.addEventListener('input', () => {
+		video.currentTime = seekBar.value;
+	});
+
+	video.addEventListener('ended', () => {
+		playPause.textContent = '►';
+	});
+	// Добавляем в начало скрипта
+	let history = [];
+	let historyIndex = -1;
+
+
+	// Функция отмены действия
+	function undoAction() {
+		if (historyIndex > 0) {
+			historyIndex--;
+			blurData = JSON.parse(JSON.stringify(history[historyIndex]));
+			selectedBlurRegions = [];
+			drawTimeline();
+			console.log("Undo performed");
+		} else {
+			console.log("Nothing to undo");
+		}
+	}
+
+	// Функция повтора действия
+	function redoAction() {
+		if (historyIndex < history.length - 1) {
+			historyIndex++;
+			blurData = JSON.parse(JSON.stringify(history[historyIndex]));
+			selectedBlurRegions = [];
+			drawTimeline();
+			console.log("Redo performed");
+		} else {
+			console.log("Nothing to redo");
+		}
+	}
+
+	// Модифицируем функции, которые меняют blurData, чтобы они сохраняли историю:
+
+	// В обработчике mouseup (создание новой области):
+	canvas.addEventListener('mouseup', (e) => {
+		if (!isDrawing || !currentRect || e.button !== 0) return;
+
+		isDrawing = false;
+
+		let { x, y, width, height } = currentRect;
+		if (width < 0) { x += width; width = -width; }
+		if (height < 0) { y += height; height = -height; }
+
+		if (width > 10 && height > 10) {
+			saveToHistory(); // Сохраняем предыдущее состояние
+			blurData.push({
+				x: Math.round(x),
+				y: Math.round(y),
+				width: Math.round(width),
+				height: Math.round(height),
+				start: currentRect.start,
+				end: currentRect.end,
+				active: true
+			});
+			selectedBlurRegions = [];
+			drawTimeline();
+		}
+
+		currentRect = null;
+		e.stopPropagation();
+	});
+
+	// В обработчике удаления:
+	document.addEventListener('keydown', (e) => {
+		if ((e.keyCode === 46 || e.keyCode === 8) && selectedBlurRegions.length > 0) {
+			saveToHistory(); // Сохраняем предыдущее состояние
+			selectedBlurRegions.sort((a, b) => b - a).forEach(index => {
+				blurData.splice(index, 1);
+			});
+			selectedBlurRegions = [];
+			drawTimeline();
+			e.preventDefault();
+		}
+
+		// Добавляем горячие клавиши для Undo/Redo
+		if (e.ctrlKey || e.metaKey) {
+			if (e.key === 'z') {
+				undoAction();
+				e.preventDefault();
+			} else if (e.key === 'y' || (e.shiftKey && e.key === 'Z')) {
+				redoAction();
+				e.preventDefault();
+			}
+		}
+	});
+
+	// Добавляем кнопки в HTML (внутри блока с контролами):
+	/*
+	<button id="undoBtn" title="Undo (Ctrl+Z)">↩️ Undo</button>
+	<button id="redoBtn" title="Redo (Ctrl+Y)">↪️ Redo</button>
+	*/
+
+	// Инициализация кнопок:
+	document.getElementById('undoBtn').addEventListener('click', undoAction);
+	document.getElementById('redoBtn').addEventListener('click', redoAction);
+
+	// Сохраняем начальное состояние после загрузки данных
+	setTimeout(() => {
+		saveToHistory();
+	}, 500);
+</script>
+
+{% endblock %}

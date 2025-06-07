@@ -2,19 +2,24 @@ from django.db import models
 from django.conf import settings
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Video(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
-    )  # noqa: E501
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     post = models.TextField(max_length=255)
+    description = models.TextField(blank=True)  # 🆕 Добавлено поле
     video_file = models.FileField(upload_to="videos/", blank=True, null=True)
-    parent = models.ForeignKey(
-        "Video", null=True, blank=True, on_delete=models.CASCADE
-    )  # noqa: E501
+    parent = models.ForeignKey("Video", null=True, blank=True, on_delete=models.CASCADE)
     comments = models.IntegerField(default=0)
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
+    tags = models.ManyToManyField("Tag", blank=True, related_name="videos")
 
     def __str__(self):
         return self.post
