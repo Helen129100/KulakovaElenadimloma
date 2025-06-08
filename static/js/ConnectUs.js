@@ -137,8 +137,8 @@ document.addEventListener("click", function(e) {
 
 
 
-
- document.addEventListener("click", function (e) {
+document.addEventListener('DOMContentLoaded', () => {
+ document.addEventListener("click", async function(e) {
     if (e.target.id === "video_submit") {
 		console.log("video_prob");
         let formdata = new FormData();
@@ -179,46 +179,76 @@ document.addEventListener("click", function(e) {
             });
     }
 
-    if (e.target.id === "cancel_upload") {
-        $("#staticBackdrop").modal("hide");
-    }
+   const resultDiv = document.getElementById('text_result_censorship');
+
 
     if (e.target.id === "start_censorship") {
-        document.getElementById("censorship-options").style.display = "block";
-    }
+      
+        resultDiv.innerHTML = '<div class="text-info">Обработка видео...</div>';
 
-    if (e.target.id === "confirm_censorship") {
-        let sound_option = document.getElementById("mute_sound").value;
-        let formdata = new FormData();
-        let video_file = document.getElementById('id_video_file').files[0];
-        let csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-        let post = document.querySelector('input[name="post"]').value;
+        const formdata = new FormData();
+        const video_file = document.getElementById('id_video_file').files[0];
+        const csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        const post = document.querySelector('input[name="post"]').value;
 
         formdata.append('video_file', video_file);
         formdata.append('post', post);
         formdata.append('csrfmiddlewaretoken', csrf);
-        formdata.append('censorship_mode', sound_option);
 
-        fetch('/videos/add_video/', {
-            method: 'POST',
-            mode: 'same-origin',
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': csrf,
-            },
-            body: formdata
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.form_is_valid) {
-                    $("#staticBackdrop").modal("hide");
-                    location.reload();
-                }
+        try {
+            const response = await fetch('/videos/check_censure/', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: formdata
             });
+
+            const data = await response.json();
+if (data.success) {
+    resultDiv.innerHTML = `<div class="text-success">${data.message}</div>`;
+document.querySelector('.edit_censorship').style.display = 'block';
+    const editLink = document.querySelector('.edit_censorship a');
+  if (data.video_url && data.json_video_path) {
+  const urlEncoded = encodeURIComponent(data.video_url);
+  const jsonEncoded = data.json_video_path;
+console.log(jsonEncoded);
+  const baseEditorUrl = document.querySelector('.edit_censorship').dataset.editorUrl;
+  editLink.href = `${baseEditorUrl}?video=${urlEncoded}&json_video=${jsonEncoded}`;
+  editLink.style.display = 'inline-block';
+}
+} else {
+    resultDiv.innerHTML = `<div class="text-danger">${data.message}</div>`;
+}
+          
+
+        } catch (error) {
+            resultDiv.innerHTML = `<div class="text-danger">Ошибка: ${error.message}</div>`;
+        }
     }
+        
+            
+        if (e.target.id === "cancel_upload") {
+            // Просто скрываем кнопки и показываем сообщение
+            e.target.style.display = 'none';
+            document.getElementById('start_censorship').style.display = 'none';
+            resultDiv.innerHTML = '<div class="text-warning">Видео загружено без цензуры</div>';
+        }
 });
-  
+     function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
   
   
 document.addEventListener("click", function(e) {
@@ -250,7 +280,7 @@ document.addEventListener("click", function(e) {
      
 });
 
-
+});
 
   
 document.addEventListener("click", function(e) {

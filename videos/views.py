@@ -10,6 +10,7 @@ from videos.forms import VideoForm
 from django.db.models import Q  # Импортируем Q
 from .models import Like, Subscription
 import os
+from .video_censure_check import VideoCensorship
 from moviepy.editor import VideoFileClip
 import speech_recognition as sr
 import string
@@ -38,6 +39,62 @@ def delete_video(request, video_id):
     return redirect(
         "profile", username=request.user.username
     )  # перенаправления на профиль
+
+
+def check_censure_view(request):
+    if request.method == "POST" and request.FILES.get("video_file"):
+        form = VideoForm(request.POST, request.FILES)
+        if form.is_valid():
+            video = form.save(commit=False)
+            video.user = request.user
+            video.video_file = form.cleaned_data["video_file"]
+            video.post = form.cleaned_data["post"]
+            video.save()
+
+            video_path = video.video_file.path
+            video_url = video.video_file.url
+            # Тут ты вызываешь свою функцию
+            result_text, result_censure, json_video_path = check_censure(video_path)
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": result_text,
+                    "censored": result_censure,
+                    "video_url": video_url,
+                    "json_video_path": json_video_path,
+                }
+            )
+        else:
+            return JsonResponse({"success": False, "message": "Форма невалидна"})
+    return JsonResponse({"success": False, "message": "Неверный запрос"})
+
+
+def check_censure(video_path):
+    result_censure = False
+    result_text = ""
+
+    video_name = os.path.splitext(os.path.basename(video_path))[0]
+    json_name = video_name + ".json"
+    json_video_path = "media/json_video/" + json_name
+
+    processor = VideoCensorship()
+    result_video = processor.analyze_video(video_path, json_video_path)
+    result_audio = process_video(video_path)
+
+    if result_video:
+        result_text += "📛 Видео не прошло цензуру.\n"
+        result_censure = True
+    else:
+        result_text += "✅ Видео прошло цензуру.\n"
+
+    if result_audio:
+        result_text += "📛 Аудио не прошло цензуру."
+        result_censure = True
+    else:
+        result_text += "✅ Аудио прошло цензуру."
+
+    return result_text, result_censure, json_name
 
 
 # Функция извлечения аудио
@@ -128,7 +185,7 @@ def process_video(video_path):
         features = extract_mel_spectrogram(audio_path, augment=False)
     except Exception as e:
         print(f"❌ Ошибка при извлечении мел-спектрограммы: {e}")
-        return False
+        return True
 
     features = np.expand_dims(features, axis=(0, -1))
 
@@ -138,7 +195,7 @@ def process_video(video_path):
     prediction = float(model.predict(features)[0][0])
 
     print(f"🔍 Вероятность запрещённого слова: {prediction:.3f}")
-    return prediction <= 0.7
+    return prediction >= 0.7
 
 
 @login_required
@@ -379,7 +436,19 @@ def set_language(request):
 
 
 def video_editor(request):
-    return render(request, "videos/video_editor.html")
+    video_url = request.GET.get("video")
+
+    json_video = request.GET.get("json_video")
+
+    print(json_video)
+    return render(
+        request,
+        "videos/video_editor.html",
+        {
+            "video_url": video_url,
+            "json_video": json_video,
+        },
+    )
 
 
 def blur_data_api(

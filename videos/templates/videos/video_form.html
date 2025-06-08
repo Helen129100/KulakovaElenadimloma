@@ -46,24 +46,23 @@
 
 	</form>
 
-	<!-- Остальные элементы (цензура и т.д.) -->
-	<div id="censorship-warning" class="" style="display: none;">
-		Видео не прошло цензуру. Выберите действие:
+
+	<div id="censorship-warning" class="">
+
 		<div class="mt-2">
 			<button id="start_censorship" class="btn_videohost_color">Пройти автоматическую цензуру</button>
-			<button id="cancel_upload" class="btn_videohost_color1">Не загружать видео</button>
+			<button id="cancel_upload" class="btn_videohost_color1">загрузить без цензуры</button>
+			<div id="text_result_censorship"></div>
+		</div>
+
+		<div class="edit_censorship" style="display: none;" data-editor-url="{% url 'videos:video_editor' %}">
+			<a href="#" role="button" class="btn btn-modif_purple btn-outline-secondary btn-sm">
+				редактировать видео
+			</a>
 		</div>
 	</div>
-	<!-- Скрытая форма выбора звука -->
-	<div id="censorship-options" style="display: none;">
-		<label for="mute_sound">Выберите тип звука для замены:</label>
-		<select id="mute_sound" class="form-control">
-			<option value="beep">Звук "бип"</option>
-			<option value="silence">Полная тишина</option>
-			<option value="music">Фоновая музыка</option>
-		</select>
-		<button id="confirm_censorship" class="btn_videohost_color">Подтвердить и загрузить видео</button>
-	</div>
+
+
 	<div class="modal-footer .dark-theme">
 		<button type="button" class="btn_videohost_color1" data-dismiss="modal">Закрыть</button>
 		<button type="button" id="video_submit" class="btn_videohost_color">Подтвердить</button>

@@ -171,7 +171,8 @@
 <div class="container">
 	<div id="video-container">
 		<div id="player">
-			<video id="video" src="/media/videos/video5341398135929337878.mp4"></video>
+
+			<video id="video" src="{{ video_url }}"></video>
 			<canvas id="overlay"></canvas>
 			<div id="controls">
 				<button id="playPause">►</button>
@@ -270,12 +271,19 @@
 
 		ctx.restore();
 	}
+	const jsonVideoPath = "{{json_video}}";
+	console.log('/media/json_video/' + jsonVideoPath);
 	// Load initial blur data
-	fetch('/media/json_video/video5341398135929337878.json')
+	fetch('/media/json_video/' + jsonVideoPath)
 		.then(res => res.json())
 		.then(data => {
-			blurData = data;
-			video.addEventListener('loadedmetadata', initVideo);
+			if (Array.isArray(data.detections)) {
+				blurData = data.detections;
+				video.addEventListener('loadedmetadata', initVideo);
+			} else {
+				console.error('Поле detections отсутствует или не массив');
+				blurData = [];
+			}
 		});
 	function initVideo() {
 		canvas.width = video.videoWidth;
@@ -379,6 +387,8 @@
 					ctx.lineWidth = 2;
 					ctx.strokeRect(b.x, b.y, b.width, b.height);
 				}
+
+				console.log(b.x, b.y, b.width, b.height);
 			}
 		});
 

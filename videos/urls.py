@@ -9,6 +9,7 @@ urlpatterns = [
     path("increment_views/", views.increment_views, name="increment_views"),
     path("video/<int:id>/", views.video, name="video"),
     path("add_video/", views.add_video, name="add_video"),
+    path("check_censure/", views.check_censure_view, name="check_censure"),
     path("comment/", views.comment, name="comment"),
     path("remove/", views.remove, name="remove"),
     path("edit_video/<int:id>/", views.edit_video, name="edit_video"),
@@ -19,6 +20,6 @@ urlpatterns = [
     path(
         "set_language/", views.set_language, name="set_language"
     ),  # Добавленный маршрут
-    path("videos/video_editor", views.video_editor, name="video_editor"),
+    path("video_editor/", views.video_editor, name="video_editor"),
     path("video_editor/start", views.blur_data_api, name="blur_data_api"),
 ]
