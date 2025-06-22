@@ -93,6 +93,7 @@ class VideoCensorship:
         cap.release()
 
         # Сохраняем JSON
+
         os.makedirs(os.path.dirname(json_output_path), exist_ok=True)
         with open(json_output_path, "w") as f:
             json.dump(

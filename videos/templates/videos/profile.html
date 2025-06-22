@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
+{% load static %}
 {% load i18n %}
 
 {% block title %}{{ page_user.username }}{% endblock %}
@@ -24,7 +24,7 @@
 			<div class="container_profile mb-4">
 				<div class="container_profile">
 					{% if page_user.avatar %}
-					<a href="{% url 'profile' page_user.username %}">
+					<a id="profile_name" href="{% url 'profile' page_user.username %}">
 						<img src="{{ page_user.avatar.url }}" alt="profile_pic" class="user-profile-pic rounded-circle">
 					</a>
 					{% else %}
@@ -48,7 +48,7 @@
 							class="btn btn-modif_purple btn-outline-secondary btn-sm">
 							{% trans "Редактировать профиль" %}
 						</a>
-						<button id="upload" type="button"
+						<button id="upload" type="button" data-username="{{ page_user.username }}"
 							class="btn btn-modif_purple btn-outline-secondary btn-sm ml-2">
 							{% trans "Загрузить видео" %}
 						</button>
@@ -103,6 +103,10 @@
 							{% endif %}
 						</div>
 					</div>
+				</div>
+				<div class="card-footer">
+					<div class="video-header">{{ video.post|truncatechars:42 }}</div>
+					<small class="ml-1">{{ video.date }}</small>
 				</div>
 			</div>
 		</div>

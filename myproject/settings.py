@@ -40,6 +40,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
+    "django_extensions",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",

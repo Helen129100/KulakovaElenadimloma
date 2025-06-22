@@ -14,6 +14,7 @@ class Video(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     post = models.TextField(max_length=255)
     description = models.TextField(blank=True)  # 🆕 Добавлено поле
+    censorship_flag = models.IntegerField(default=0)  # 🆕 Добавлено поле
     video_file = models.FileField(upload_to="videos/", blank=True, null=True)
     parent = models.ForeignKey("Video", null=True, blank=True, on_delete=models.CASCADE)
     comments = models.IntegerField(default=0)

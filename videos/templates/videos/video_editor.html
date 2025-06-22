@@ -169,10 +169,12 @@
 </style>
 
 <div class="container">
+
+	<div id="message" style="display: none;"></div>
 	<div id="video-container">
 		<div id="player">
 
-			<video id="video" src="{{ video_url }}"></video>
+			<video id="video" src="{{ video_url }}" width="640" height="360"></video>
 			<canvas id="overlay"></canvas>
 			<div id="controls">
 				<button id="playPause">►</button>
@@ -193,6 +195,7 @@
 		<button id="redoBtn" title="Redo (Ctrl+Y)">↪️ </button>
 		<button id="deleteBtn" title="Delete selected (Del)">❌ </button>
 		<button id="saveBtn" onclick="saveData()">💾 </button>
+		<button id="confirmntn" onclick="confirmcensure()">Сохранить видео</button>
 		<select id="effectType">
 			<option value="blur">Blur</option>
 			<option value="pixelate">Pixelate</option>
@@ -271,14 +274,21 @@
 
 		ctx.restore();
 	}
+	let originalJson;
 	const jsonVideoPath = "{{json_video}}";
+
+
 	console.log('/media/json_video/' + jsonVideoPath);
+	const username_edit = "{{username}}";
+	console.log("username: " + username_edit);
 	// Load initial blur data
 	fetch('/media/json_video/' + jsonVideoPath)
 		.then(res => res.json())
 		.then(data => {
 			if (Array.isArray(data.detections)) {
+				console.log("dddddddddd");
 				blurData = data.detections;
+				originalJson = data;  // Сохраняем оригинальный JSON
 				video.addEventListener('loadedmetadata', initVideo);
 			} else {
 				console.error('Поле detections отсутствует или не массив');
@@ -286,21 +296,21 @@
 			}
 		});
 	function initVideo() {
-		canvas.width = video.videoWidth;
-		canvas.height = video.videoHeight;
+		canvas.width = 640;
+		canvas.height = 360;
 		console.log("Video dimensions:", video.videoWidth, "x", video.videoHeight);
 
 		// Calculate scale factors from original 640x640 to actual video size
-		const scaleX = video.videoWidth / 640;
-		const scaleY = video.videoHeight / 640;
+		const scaleX = 640 / 640;
+		const scaleY = 640 / 640;
 
 		// Scale existing blur regions from 640x640 to video dimensions
 		blurData = blurData.map(b => ({
 			...b,
 			x: Math.round(b.x * scaleX),
-			y: Math.round(b.y * scaleY) + 80,
+			y: Math.round(b.y * scaleY),
 			width: Math.round(b.width * scaleX),
-			height: Math.round(b.height * scaleY) + 100
+			height: Math.round(b.height * scaleY) + 50
 		}));
 
 		// Calculate scale factors for current display
@@ -548,14 +558,105 @@
 
 	// Обработчик кнопки Delete
 	document.getElementById('deleteBtn').addEventListener('click', deleteSelectedRegions);
+	const video_id_editor = "{{video_id}}";
+	console.log('дддддддд' + jsonVideoPath);
+	function getCookie(name) {
+		let cookieValue = null;
+		if (document.cookie && document.cookie !== '') {
+			const cookies = document.cookie.split(';');
+			for (let i = 0; i < cookies.length; i++) {
+				const cookie = cookies[i].trim();
+				if (cookie.substring(0, name.length + 1) === (name + '=')) {
+					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+					break;
+				}
+			}
+		}
+		return cookieValue;
+	}
+	const censorship_flag = "{{censorship_flag}}";
+
+	const csrftoken = getCookie('csrftoken');
+	async function confirmcensure() {
+		const messageDiv = document.getElementById('message');
+		messageDiv.style.display = 'block';
+		messageDiv.innerHTML = "Идет обработка подождите, пожалуйста";
+
+		let formdata = new FormData();
 
 
-	function saveData() {
-		fetch('/media/json_video/result_blur', {
+
+
+
+
+		formdata.append('censorship_flag', censorship_flag);
+		formdata.append('video_id', video_id_editor);
+		console.log(video_id_editor);
+		formdata.append('json_name', jsonVideoPath);
+		console.log(censorship_flag);
+		console.log(jsonVideoPath);
+
+
+		formdata.append('csrfmiddlewaretoken', csrftoken);
+
+		fetch('/videos/add_video/', {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(blurData)
-		}).then(_ => alert('✅ Saved!'));
+			mode: 'same-origin',
+			headers: {
+				'Accept': 'application/json',
+				'X-Requested-With': 'XMLHttpRequest',
+				'X-CSRFToken': csrftoken,
+			},
+			body: formdata
+		})
+			.then(response => response.json())
+			.then(data => {
+				if (!data.form_is_valid) {
+
+
+
+					document.getElementById("modal-content").innerHTML = data.video_form;
+
+
+				} else {
+
+					window.location.href = `/${username_edit}/?video_id=${video_id_editor}`;
+					$("#staticBackdrop").modal("hide");
+
+				}
+			});
+
+
+	}
+	async function saveData() {
+		try {
+			originalJson.detections = blurData;
+
+			const response = await fetch(`/videos/save-json-video/?filepath=${jsonVideoPath}`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrftoken
+				},
+				body: JSON.stringify(originalJson)  // Сохраняем весь JSON, но с обновлёнными detections
+			});
+			const result = await response.json();
+
+			if (response.ok) {
+
+				alert(result.message);
+
+
+
+
+
+
+			} else {
+				alert(`❌ Ошибка: ${result.message}`);
+			}
+		} catch (error) {
+			alert(`❌ Ошибка сети: ${error.message}`);
+		}
 	}
 
 	// Video controls

@@ -1,8 +1,6 @@
-<div class="modal-header">
+<div class="modal-header" style="justify-content: end;">
 
-	<button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-		<span aria-hidden="true">&times;</span>
-	</button>
+	<button type="button" class="btn_videohost_color1" id="delete-video-btn" data-dismiss="modal">X</button>
 </div>
 <div class="upload-container">
 	<h1>Добавить видео</h1>
@@ -35,7 +33,7 @@
 		</div>
 
 		<!-- Теги -->
-		<div class="form-group">
+		<div class="form-group" style="display: none;">
 			<label for="{{ form.tags.id_for_label }}">Теги (через запятую)</label>
 			{{ form.tags }}
 			{{ form.tags.errors }}
@@ -52,10 +50,13 @@
 		<div class="mt-2">
 			<button id="start_censorship" class="btn_videohost_color">Пройти автоматическую цензуру</button>
 			<button id="cancel_upload" class="btn_videohost_color1">загрузить без цензуры</button>
+			<p>{{ page_user.username }}</p>
 			<div id="text_result_censorship"></div>
 		</div>
 
 		<div class="edit_censorship" style="display: none;" data-editor-url="{% url 'videos:video_editor' %}">
+
+
 			<a href="#" role="button" class="btn btn-modif_purple btn-outline-secondary btn-sm">
 				редактировать видео
 			</a>
@@ -64,7 +65,7 @@
 
 
 	<div class="modal-footer .dark-theme">
-		<button type="button" class="btn_videohost_color1" data-dismiss="modal">Закрыть</button>
+		<button type="button" class="btn_videohost_color1" id="delete-video-btn" data-dismiss="modal">Закрыть</button>
 		<button type="button" id="video_submit" class="btn_videohost_color">Подтвердить</button>
 	</div>
 </div>

@@ -510,6 +510,7 @@ li {
 .card {
 	border: none !important;
 	/* Радиус углов */
+
 	background-color: unset !important;
 	/* Скрыть переполнение */
 	transition: none !important;
@@ -713,6 +714,13 @@ input[name="q"] {
 }
 
 .dark-theme .form-control {
+	.navbar-light .navbar-toggler-icon {
+		background-image: url(data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0, 0, 0, 0.5)' stroke-width=' 2' stroke-linecap=' round' stroke-miterlimit=' 10' d=' M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E);
+
+	}
+}
+
+.dark-theme .form-control {
 	background-color: #181818 !important;
 	/* Черный фон для инпутов */
 	color: rgb(255, 255, 255) !important;
@@ -873,11 +881,75 @@ input[name="q"] {
 
 }
 
-@media (max-width: 768px) {
+.pagination {
+	display: flex;
+	justify-content: center;
+	margin: 30px 0;
+	font-family: 'Roboto', Arial, sans-serif;
+}
+
+.step-links {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.step-links a {
+	color: #065fd4;
+	text-decoration: none;
+	padding: 8px 12px;
+	border-radius: 4px;
+	border: 1px solid #ddd;
+	transition: all 0.3s ease;
+	font-size: 14px;
+}
+
+.step-links a:hover {
+	background-color: #f1f1f1;
+	border-color: #c6c6c6;
+}
+
+.current-page {
+	padding: 8px 12px;
+	font-weight: 500;
+	color: #606060;
+}
+
+/* Для активной страницы (если нужно выделить текущую страницу) */
+/* .step-links .active {
+    background-color: #065fd4;
+    color: white;
+    border-color: #065fd4;
+} */
+
+/* Для мобильной адаптации */
+@media (max-width: 600px) {
+	.step-links {
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	.step-links a {
+		padding: 6px 10px;
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 960px) {
 	.col-md-3 {
 		-webkit-box-flex: 0;
-		-ms-flex: 0 0 25%;
-		flex: 0 0 100%;
+		-ms-flex: 0 33%;
+		flex: 0 33%;
+		max-width: 33%;
+		/* Новое значение вместо 25% */
+	}
+}
+
+@media (max-width: 768px) {
+	.col-md-3 {
+		flex: 100%;
+		/* Новое значение вместо 25% */
 		max-width: 100%;
+		/* Новое значение вместо 25% */
 	}
 }

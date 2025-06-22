@@ -110,14 +110,54 @@ document.addEventListener("keydown",  function(e) {
       
 });
 
+let paramValue;
 
+function getUrlParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+let video_id=0;
+/*
+document.addEventListener('DOMContentLoaded', function() {
+    paramValue = getUrlParam('video_id');
 
-
+    if(paramValue){
+        beforeSend();
+        video_id=paramValue;
+        // Правильный GET-запрос с параметром в URL
+        fetch(`/videos/get_form/?video_id=${paramValue}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка сети');
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById("modal-content").innerHTML = data.video_form;
+            let modal_username = document.getElementById('upload');
+            if (modal_username) {
+                username = modal_username.dataset.username;
+                console.log("username: " + username);
+            }
+            initVideoUploadEvents();
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+        });
+    }
+});*/
+let username;
 
 document.addEventListener("click", function(e) {
     if (e.target.id == "upload") {
         beforeSend();
-
+	
         fetch('/videos/add_video/', {
             headers: {
                 'Accept': 'application/json',
@@ -127,7 +167,10 @@ document.addEventListener("click", function(e) {
         .then(response => response.json())
         .then(data => {
             document.getElementById("modal-content").innerHTML = data.video_form;
+            let modal_username=document.getElementById('upload');
 
+			username = modal_username.dataset.username;
+					  console.log("username"+username);
             // 🔥 ВАЖНО: инициализация скрипта после вставки HTML
             initVideoUploadEvents();
         });
@@ -138,14 +181,31 @@ document.addEventListener("click", function(e) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+	 let censorshipFlag = 0
+; // Флаг цензуры по умолчанию 0
+
+let json_name="";
  document.addEventListener("click", async function(e) {
+
+	
     if (e.target.id === "video_submit") {
-		console.log("video_prob");
+
+
+		
+		
         let formdata = new FormData();
         let video_file = document.getElementById('id_video_file').files[0];
         let csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
         let post = document.querySelector('input[name="post"]').value;
+let description = document.querySelector('textarea[name="description"]').value;
+  let tags = document.querySelector('input[name="tags"]').value;
+formdata.append('tags', tags);
 
+formdata.append('description', description);
+      formdata.append('censorship_flag', censorshipFlag);
+	    formdata.append('video_id', video_id);
+		console.log("video_id"+video_id);
+	  formdata.append('json_name', json_name);
         formdata.append('video_file', video_file);
         formdata.append('post', post);
         formdata.append('csrfmiddlewaretoken', csrf);
@@ -168,10 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     document.getElementById("modal-content").innerHTML = data.video_form;
 
-                    // Показать блок с предупреждением
-                    setTimeout(() => {
-                        document.getElementById("censorship-warning").style.display = "block";
-                    }, 300);
+                   
                 } else {
                     $("#staticBackdrop").modal("hide");
                     location.reload();
@@ -182,58 +239,117 @@ document.addEventListener('DOMContentLoaded', () => {
    const resultDiv = document.getElementById('text_result_censorship');
 
 
-    if (e.target.id === "start_censorship") {
-      
-        resultDiv.innerHTML = '<div class="text-info">Обработка видео...</div>';
+if (e.target.id === "start_censorship") {
 
-        const formdata = new FormData();
-        const video_file = document.getElementById('id_video_file').files[0];
-        const csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-        const post = document.querySelector('input[name="post"]').value;
+	
+    censorshipFlag = 4; // Устанавливаем временный флаг
+    resultDiv.innerHTML = '<div class="text-info">Обработка видео...</div>';
+           let formdata = new FormData();
+        let video_file = document.getElementById('id_video_file').files[0];
+        let csrf = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        let post = document.querySelector('input[name="post"]').value;
+let description = document.querySelector('textarea[name="description"]').value;
+  let tags = document.querySelector('input[name="tags"]').value;;
+ 
 
+formdata.append('tags', tags);
+
+formdata.append('description', description);
+      formdata.append('censorship_flag', censorshipFlag.toString());
+	    formdata.append('video_id', video_id);
+	
+	  formdata.append('json_name', json_name);
         formdata.append('video_file', video_file);
         formdata.append('post', post);
         formdata.append('csrfmiddlewaretoken', csrf);
 
-        try {
-            const response = await fetch('/videos/check_censure/', {
+    try {
+        const response = await fetch('/videos/check_censure/', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formdata
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+			
+            // Обновляем флаг цензуры
+            censorshipFlag = data.censorship_result;
+            console.log(censorshipFlag);
+            resultDiv.innerHTML = `<div class="text-success">${data.message}</div>`;
+            json_name=data.json_video_path;
+			console.log(data.json_video_path)
+            
+
+			video_id=data.video_id;
+			console.log(video_id);            // Показываем кнопку редактирования если нужно
+            if (data.censorship_result > 0 && data.censorship_result < 4) {
+                document.querySelector('.edit_censorship').style.display = 'block';
+                const editLink = document.querySelector('.edit_censorship a');
+               
+                if (data.video_url && data.json_video_path) {
+                    const urlEncoded = encodeURIComponent(data.video_url);
+                      
+					
+                    const jsonEncoded = json_name;
+                    const baseEditorUrl = document.querySelector('.edit_censorship').dataset.editorUrl;
+                  editLink.href = `${baseEditorUrl}?video=${urlEncoded}&json_video=${jsonEncoded}&video_id=${video_id}&censorship_flag=${censorshipFlag}&username=${username}`;
+                    editLink.style.display = 'inline-block';
+                }
+            }
+        } else {
+            resultDiv.innerHTML = `<div class="text-danger">${data.message}</div>`;
+            censorshipFlag = 0; // Сбрасываем флаг при ошибке
+        }
+    } catch (error) {
+        resultDiv.innerHTML = `<div class="text-danger">Ошибка сети: ${error.message}</div>`;
+        censorshipFlag = 0; // Сбрасываем флаг при ошибке
+    }
+}
+
+
+
+if (e.target.id === "delete-video-btn") {
+
+	console.log("video_id"+video_id);
+	
+ if (video_id !== 0) {
+        if (confirm('Вы уверены, что хотите удалить это видео?')) {
+
+		    try {
+				  const formData = new FormData();
+        formData.append('video_id', video_id);
+		 formData.append('csrfmiddlewaretoken', document.querySelector('input[name="csrfmiddlewaretoken"]').value);
+            const response = await fetch('/videos/delete_video_before/', {
                 method: 'POST',
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'X-Requested-With': 'XMLHttpRequest',
+                    // Не нужно Content-Type для FormData - браузер сам установит
                 },
-                body: formdata
+                body: formData
             });
 
             const data = await response.json();
-if (data.success) {
-    resultDiv.innerHTML = `<div class="text-success">${data.message}</div>`;
-document.querySelector('.edit_censorship').style.display = 'block';
-    const editLink = document.querySelector('.edit_censorship a');
-  if (data.video_url && data.json_video_path) {
-  const urlEncoded = encodeURIComponent(data.video_url);
-  const jsonEncoded = data.json_video_path;
-console.log(jsonEncoded);
-  const baseEditorUrl = document.querySelector('.edit_censorship').dataset.editorUrl;
-  editLink.href = `${baseEditorUrl}?video=${urlEncoded}&json_video=${jsonEncoded}`;
-  editLink.style.display = 'inline-block';
-}
-} else {
-    resultDiv.innerHTML = `<div class="text-danger">${data.message}</div>`;
-}
-          
+            console.log("Ответ сервера:", data);
 
+            if (data.status === "success") {  // Проверяем data.status вместо data.success
+             
+                location.reload(); // Перезагружаем страницу
+            } else {
+                console.error("Ошибка:", data.message);
+                alert("Ошибка: " + (data.message || "Неизвестная ошибка"));
+            }
         } catch (error) {
-            resultDiv.innerHTML = `<div class="text-danger">Ошибка: ${error.message}</div>`;
+            console.error("Ошибка запроса:", error);
+            alert("Сетевая ошибка: " + error.message);
+        }
         }
     }
-        
-            
-        if (e.target.id === "cancel_upload") {
-            // Просто скрываем кнопки и показываем сообщение
-            e.target.style.display = 'none';
-            document.getElementById('start_censorship').style.display = 'none';
-            resultDiv.innerHTML = '<div class="text-warning">Видео загружено без цензуры</div>';
-        }
+}
+
 });
      function getCookie(name) {
         let cookieValue = null;
@@ -409,62 +525,78 @@ let modifiedString = likeIcon.src.slice(0, -9);
 		}
 	}
 function initVideoUploadEvents() {
-	const dropZone = document.querySelector('.drop-zone');
-	const fileInput = document.querySelector('#id_video_file');
-	const prompt = document.querySelector('.drop-zone__prompt');
+    const dropZone = document.querySelector('.drop-zone');
+    const fileInput = document.querySelector('#id_video_file');
+    const prompt = document.querySelector('.drop-zone__prompt');
+    const form = document.getElementById('video-upload-form');
 
-	if (!dropZone || !fileInput || !prompt) {
-		console.warn("⛔ Не найдены элементы модалки для загрузки видео.");
-		return;
-	}
+    if (!dropZone || !fileInput || !prompt || !form) {
+        console.warn("⛔ Не найдены элементы модалки для загрузки видео.");
+        return;
+    }
 
-	console.log("✅ Инициализация drop zone выполнена");
+    // Флаг для отслеживания загруженного файла
+    let fileIsUploaded = false;
 
-	dropZone.addEventListener('click', () => {
-		fileInput.click();
-		console.log("📥 Клик по зоне drop");
-	});
+    // Обработчик клика по drop-зоне
+    dropZone.addEventListener('click', (e) => {
+        if (e.target === dropZone) {
+            fileInput.click();
+        }
+    });
 
-	['dragenter', 'dragover'].forEach(eventName => {
-		dropZone.addEventListener(eventName, (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			dropZone.classList.add('drop-zone--over');
-		}, false);
-	});
+    // Обработчики drag and drop
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('drop-zone--over');
+        });
+    });
 
-	['dragleave', 'drop'].forEach(eventName => {
-		dropZone.addEventListener(eventName, (e) => {
-			e.preventDefault();
-			e.stopPropagation();
-			dropZone.classList.remove('drop-zone--over');
-		}, false);
-	});
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('drop-zone--over');
+        });
+    });
 
-	dropZone.addEventListener('drop', (e) => {
-		const dt = e.dataTransfer;
-		const files = dt.files;
-		if (files.length) {
-			fileInput.files = files;
-			updatePrompt(files[0].name);
-		}
-	});
+    dropZone.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length) {
+            handleFileSelection(files[0]);
+        }
+    });
 
-	fileInput.addEventListener('change', () => {
-		if (fileInput.files.length) {
-			updatePrompt(fileInput.files[0].name);
-		}
-	});
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+            handleFileSelection(fileInput.files[0]);
+        }
+    });
 
-	function updatePrompt(fileName) {
-		prompt.textContent = "Файл выбран:";
-		prompt.style.fontWeight = "normal";
-		prompt.style.color = "#333";
+    function handleFileSelection(file) {
+        // Создаем новый DataTransfer и добавляем файл
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        
+        updatePrompt(file.name);
+        fileIsUploaded = true;
+    }
 
-		const fileInfo = document.getElementById("file-info");
-		const fileNameDisplay = document.getElementById("file-name-display");
+    function updatePrompt(fileName) {
+        prompt.textContent = "Файл выбран:";
+        prompt.style.fontWeight = "normal";
+        prompt.style.color = "#333";
 
-		fileNameDisplay.textContent = "✅ " + fileName;
-		fileInfo.style.display = "block";
-	}
+        const fileInfo = document.getElementById("file-info");
+        const fileNameDisplay = document.getElementById("file-name-display");
+
+        fileNameDisplay.textContent = "✅ " + fileName;
+        fileInfo.style.display = "block";
+    }
+
+    // Обработчик отправки формы
+  
 }

@@ -27,11 +27,23 @@
 				</div>
 				<div class="profile_nav">
 					{% if request.user.is_authenticated %}
+
+					{% if user.avatar%}
 					<a href="{% url 'profile' user.username %}">
 						<img src="{{user.avatar.url}}" alt="profile_pic" class="video-owner-pic rounded-circle">
 					</a>
 
+					{% else %}
+					<a href="{% url 'profile' user.username %}">
+						<img src="{% static 'img/user.png' %}" class="video-owner-pic rounded-circle"
+							alt="profile_pic" />
+					</a>
 					{% endif %}
+					{% else %}
+					<a href="{% url 'accounts:login' %}">Войти</a>
+					{% endif %}
+
+
 				</div>
 			</div>
 		</div>

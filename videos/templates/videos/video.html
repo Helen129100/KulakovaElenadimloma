@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
-{% load staticfiles %}
+{% load static %}
 {% load static %}
 {% load humanize %}
 
@@ -15,7 +15,7 @@
 
 		<div class="mt-5 col-md-8 main_video">
 
-			<div class="card">
+			<div class="card" style="max-height: 1400px;">
 
 
 
@@ -92,7 +92,12 @@
 					</div>
 
 					<div class="footer-description">
-						<p>Some text</p>
+						<p>{{video.description}}</p>
+						{% if video.censorship_flag == 0 %}
+						<div class="alert alert-warning" role="alert">
+							⚠️ Контент 18+. Только для взрослых.
+						</div>
+						{% endif %}
 					</div>
 				</div>
 			</div>
@@ -195,7 +200,7 @@
 			},
 			success: function (data) {
 				console.log('Like action completed');
-				$('#likes-count').text(data.likes);
+				$('#likes-count').text("Лайки: " + data.likes);
 
 				// Проверяем, какое действие произошло
 				if (data.action === "added") {

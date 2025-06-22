@@ -48,7 +48,7 @@ def user_registration(request):
             login(request, user)
             messages.success(
                 request,
-                "Registration was successful",
+                "",
                 extra_tags="alert alert-success alert-dismissible fade show",  # noqa: E501
             )
             return redirect("home")

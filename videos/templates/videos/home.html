@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load staticfiles %}
+{% load static %}
 {% load humanize %}
 
 {% block title %} ConnectUs {% endblock %}
@@ -32,7 +32,7 @@
 	<div class="mt-5 row">
 		{% for video in videos %}
 		<div class="col-md-3 mb-3"> <!-- Измените col-md-4 на col-md-3 -->
-			<div class="card">
+			<div class="card" style="max-height: 250px;">
 				<div class="card-body">
 					<a href="{% url 'videos:video' video.id %}">
 						<video id="vid" width="100%" height="200px;">

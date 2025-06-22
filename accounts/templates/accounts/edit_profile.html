@@ -29,10 +29,9 @@
 					<img src="{{ form.instance.avatar.url }}" alt="Profile Picture"
 						style="width: 100px; height: 100px; border-radius: 50%;">
 					{% else %}
-					<a href="{% url 'profile' page_user.username %}">
-						<img src="{% static 'img/user.png' %}" class="user-profile-pic rounded-circle"
-							alt="profile_pic" />
-					</a>
+
+					<img src="{% static 'img/user.png' %}" class="user-profile-pic rounded-circle" alt="profile_pic" />
+
 					{% endif %}
 				</div>
 
